@@ -816,6 +816,12 @@ export default function Portfolio() {
   const location = useLocation();
   const thumbnailRailRef = useRef(null);
   const websiteRailRef = useRef(null);
+  const paintingContentRef = useRef(null);
+  const printContentRef = useRef(null);
+  const photographyContentRef = useRef(null);
+  const illustrationContentRef = useRef(null);
+  const calligraphyContentRef = useRef(null);
+  const collaborationContentRef = useRef(null);
   const paintingTouchStartXRef = useRef(null);
   const photographyTouchStartXRef = useRef(null);
   const msPaintTouchStartXRef = useRef(null);
@@ -1316,6 +1322,77 @@ export default function Portfolio() {
     });
   }, [location.hash]);
 
+  useEffect(() => {
+    if (window.innerWidth >= 967) return;
+    const seriesIds = [
+      "dot-series",
+      "landscape-series",
+      "square-signs",
+      "lettering",
+    ];
+    const isSeries = seriesIds.includes(activeSectionId);
+    const isVisible = isSeries
+      ? showSeriesThumbnails[activeSectionId]
+      : showNonSeriesContent;
+    if (!isVisible) return;
+    requestAnimationFrame(() => {
+      paintingContentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  }, [activeSectionId, showNonSeriesContent, showSeriesThumbnails]);
+
+  useEffect(() => {
+    if (!showPrintContent || window.innerWidth >= 967) return;
+    requestAnimationFrame(() => {
+      printContentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  }, [showPrintContent]);
+
+  useEffect(() => {
+    if (!showPhotographyContent || window.innerWidth >= 967) return;
+    requestAnimationFrame(() => {
+      photographyContentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  }, [showPhotographyContent]);
+
+  useEffect(() => {
+    if (!showIllustrationContent || window.innerWidth >= 967) return;
+    requestAnimationFrame(() => {
+      illustrationContentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  }, [showIllustrationContent]);
+
+  useEffect(() => {
+    if (!showCalligraphyContent || window.innerWidth >= 967) return;
+    requestAnimationFrame(() => {
+      calligraphyContentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  }, [showCalligraphyContent]);
+
+  useEffect(() => {
+    if (!showCollaborationContent || window.innerWidth >= 967) return;
+    requestAnimationFrame(() => {
+      collaborationContentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
+  }, [showCollaborationContent]);
+
   return (
     <>
       <main className="fade-in container mx-auto p-6">
@@ -1472,7 +1549,10 @@ export default function Portfolio() {
               </div>
 
               {(isSeriesSection ? isSeriesRevealed : showNonSeriesContent) ? (
-                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                <div
+                  ref={paintingContentRef}
+                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                >
                   <h4 className="text-2xl font-semibold mb-3">
                     {displayedTitle}
                   </h4>
@@ -1752,7 +1832,10 @@ export default function Portfolio() {
                 </div>
               </div>
               {showPrintContent ? (
-                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                <div
+                  ref={printContentRef}
+                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                >
                   <h4 className="text-xl font-semibold mb-3">
                     {activePrintSection.label}
                   </h4>
@@ -1861,7 +1944,10 @@ export default function Portfolio() {
               </div>
 
               {showPhotographyContent ? (
-                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                <div
+                  ref={photographyContentRef}
+                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                >
                   <h4 className="text-xl font-semibold mb-3">
                     {displayedPhotographyTitle}
                   </h4>
@@ -2041,7 +2127,10 @@ export default function Portfolio() {
                   </div>
 
                   {showIllustrationContent ? (
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                    <div
+                      ref={illustrationContentRef}
+                      className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                    >
                       <h4 className="text-xl font-semibold mb-3">
                         {activeIllustrationGroup.label}
                       </h4>
@@ -2204,7 +2293,10 @@ export default function Portfolio() {
                   </div>
 
                   {showCalligraphyContent ? (
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                    <div
+                      ref={calligraphyContentRef}
+                      className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                    >
                       <h4 className="text-xl font-semibold mb-3">
                         {activeCalligraphyGroup.label}
                       </h4>
@@ -2280,7 +2372,10 @@ export default function Portfolio() {
                   </div>
 
                   {showCollaborationContent ? (
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                    <div
+                      ref={collaborationContentRef}
+                      className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                    >
                       <h4 className="text-xl font-semibold mb-3">
                         {activeCollaborationGroup.label}
                       </h4>
@@ -2357,6 +2452,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closeLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closeLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Painting image viewer"
@@ -2374,7 +2472,7 @@ export default function Portfolio() {
           </button>
 
           <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
+            className=""
             onClick={(event) => event.stopPropagation()}
             onTouchStart={(event) =>
               handleLightboxTouchStart(event, paintingTouchStartXRef)
@@ -2391,7 +2489,7 @@ export default function Portfolio() {
             <img
               src={assetUrl(displayedImages[lightboxIndex])}
               alt={`${displayedTitle} large view`}
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 
@@ -2413,6 +2511,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closePhotographyLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closePhotographyLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Photography image viewer"
@@ -2430,7 +2531,7 @@ export default function Portfolio() {
           </button>
 
           <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
+            className=""
             onClick={(event) => event.stopPropagation()}
             onTouchStart={(event) =>
               handleLightboxTouchStart(event, photographyTouchStartXRef)
@@ -2449,7 +2550,7 @@ export default function Portfolio() {
                 displayedPhotographyImages[photographyLightboxIndex],
               )}
               alt={`${displayedPhotographyTitle} large view`}
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 
@@ -2471,6 +2572,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closeMsPaintLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closeMsPaintLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="MS Paint image viewer"
@@ -2488,7 +2592,7 @@ export default function Portfolio() {
           </button>
 
           <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
+            className=""
             onClick={(event) => event.stopPropagation()}
             onTouchStart={(event) =>
               handleLightboxTouchStart(event, msPaintTouchStartXRef)
@@ -2505,7 +2609,7 @@ export default function Portfolio() {
             <img
               src={assetUrl(orderedMsPaintImages[msPaintLightboxIndex])}
               alt="MS Paint large view"
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 
@@ -2527,6 +2631,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closeIllustrationLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closeIllustrationLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Illustration image viewer"
@@ -2544,7 +2651,7 @@ export default function Portfolio() {
           </button>
 
           <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
+            className=""
             onClick={(event) => event.stopPropagation()}
             onTouchStart={(event) =>
               handleLightboxTouchStart(event, illustrationTouchStartXRef)
@@ -2563,7 +2670,7 @@ export default function Portfolio() {
                 activeIllustrationGroup.images[illustrationLightboxIndex],
               )}
               alt={`${activeIllustrationGroup.label} large view`}
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 
@@ -2585,6 +2692,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closeCollaborationLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closeCollaborationLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Collaboration image viewer"
@@ -2602,7 +2712,7 @@ export default function Portfolio() {
           </button>
 
           <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
+            className=""
             onClick={(event) => event.stopPropagation()}
             onTouchStart={(event) =>
               handleLightboxTouchStart(event, collaborationTouchStartXRef)
@@ -2621,7 +2731,7 @@ export default function Portfolio() {
                 activeCollaborationGroup.images[collaborationLightboxIndex],
               )}
               alt={`${activeCollaborationGroup.label} large view`}
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 
@@ -2643,6 +2753,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closeWebsiteLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closeWebsiteLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Website / Coding image viewer"
@@ -2659,14 +2772,11 @@ export default function Portfolio() {
             ‹
           </button>
 
-          <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="" onClick={(event) => event.stopPropagation()}>
             <img
               src={assetUrl(websiteCodingProjects[websiteLightboxIndex].image)}
               alt={websiteCodingProjects[websiteLightboxIndex].label}
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 
@@ -2688,6 +2798,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closeCollageWorkLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closeCollageWorkLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Collage Work image viewer"
@@ -2704,14 +2817,11 @@ export default function Portfolio() {
             ‹
           </button>
 
-          <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="" onClick={(event) => event.stopPropagation()}>
             <img
               src={assetUrl(collageWorkImages[collageWorkLightboxIndex])}
               alt={`Collage Work ${collageWorkLightboxIndex + 1}`}
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 
@@ -2733,6 +2843,9 @@ export default function Portfolio() {
         <div
           className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
           onClick={closeCalligraphyLightbox}
+          onTouchEnd={(e) => {
+            if (e.target === e.currentTarget) closeCalligraphyLightbox();
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Calligraphy / Lettering image viewer"
@@ -2749,16 +2862,13 @@ export default function Portfolio() {
             ‹
           </button>
 
-          <div
-            className="h-[82vh] w-[94vw] sm:w-[90vw] lg:w-[84vw] max-w-[1400px]"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="" onClick={(event) => event.stopPropagation()}>
             <img
               src={assetUrl(
                 activeCalligraphyGroup.images[calligraphyLightboxIndex],
               )}
               alt={`${activeCalligraphyGroup.label} large view`}
-              className="h-full w-full object-contain rounded-lg"
+              className="block max-h-[90dvh] max-w-[calc(100vw-5rem)] lg:max-w-[calc(100vw-10rem)] rounded-lg"
             />
           </div>
 

@@ -1,10 +1,9 @@
 // --- Begin full interactive CheckInSection ---
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { apiUrl } from "../utils/api";
-import { assetUrl } from "../utils/assets";
 
 export default function LeaveYourMark() {
-  const stickerTemplateSrc = assetUrl("/images/hero/helloStickerTemplate.png");
+  const stickerTemplateSrc = "/helloStickerTemplate.png";
   const canvasRef = useRef(null);
   const fluorescentPinkValue = "#ff4fd1";
   const [inkColor, setInkColor] = useState("");

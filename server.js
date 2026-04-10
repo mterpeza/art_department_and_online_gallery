@@ -95,6 +95,15 @@ app.post("/api/checkin-stickers", async (request, response) => {
     return response.json({ success: true, id, moderationStatus: "approved" });
   } catch (error) {
     console.error("[DB] Failed to save sticker:", error.message);
+    if (
+      error?.name === "ValidationException" &&
+      /item size|maximum allowed size/i.test(error.message || "")
+    ) {
+      return response.status(413).json({
+        error:
+          "Sticker image is too large to save. Please draw a bit less detail and try again.",
+      });
+    }
     return response.status(500).json({ error: "Database error" });
   }
 });

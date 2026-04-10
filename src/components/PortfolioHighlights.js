@@ -3,7 +3,7 @@ import { assetUrl } from "../utils/assets";
 
 export default function PortfolioHighlights() {
   return (
-    <section className="gallery grid gap-4 p-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <section className="gallery grid gap-4 p-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       <a
         className="group relative bg-white border-[0.5px] border-gray-200 shadow p-1 overflow-hidden"
         aria-label="Open Artwork/Portfolio"
@@ -34,11 +34,9 @@ export default function PortfolioHighlights() {
       >
         <div className="w-full aspect-square overflow-hidden">
           <img
-            className="w-full h-full object-contain object-center block"
+            className="w-full h-full object-cover object-center block"
             alt="Artwork 3"
-            src={assetUrl(
-              "https://artdept-portfolio-test.s3.amazonaws.com/images/portfolio/Illustrations/illustrations%20feature%20section/IMG_2106_i.jpeg",
-            )}
+            src={assetUrl("/images/portfolio/mspaint/IMG_4038.PNG")}
           />
         </div>
         <div className="pointer-events-none absolute inset-0 bg-[#6cebe4]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -56,10 +54,10 @@ export default function PortfolioHighlights() {
       >
         <div className="w-full aspect-square overflow-hidden">
           <img
-            className="w-full h-full object-contain object-center block"
+            className="w-full h-full object-cover object-center block"
             alt="Artwork 1"
             src={assetUrl(
-              "https://artdept-portfolio-test.s3.amazonaws.com/images/hero/hero_showcase/colab_i_showcaseLink_1.jpeg",
+              "https://artdept-portfolio-test.s3.amazonaws.com/images/hero/colab.jpeg",
             )}
           />
         </div>
