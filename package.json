@@ -5,13 +5,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1028.0",
     "@aws-sdk/lib-dynamodb": "^3.1028.0",
-    "cra-template-pwa": "2.0.0",
-    "express": "^5.2.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.23.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^5.2.0"
+    "express": "^5.2.1"
   },
   "proxy": "http://localhost:8080",
   "scripts": {
@@ -42,6 +36,12 @@
     ]
   },
   "devDependencies": {
+    "cra-template-pwa": "2.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.23.0",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^5.2.0",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.19"
