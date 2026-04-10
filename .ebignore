@@ -4,6 +4,7 @@
 node_modules
 src
 public/static
+public/images
 scripts
 coverage
 npm-debug.log*
