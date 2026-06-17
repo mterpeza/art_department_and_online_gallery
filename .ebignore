@@ -10,31 +10,3 @@ coverage
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-build/asset-manifest 2.json
-build/asset-manifest 3.json
-build/index 2.html
-build/index 3.html
-build/manifest 2.json
-build/robots 2.txt
-build/service-worker 2.js
-build/service-worker 3.js
-build/static/css 2
-build/static/css 3
-build/static/css 4
-build/static/js 2
-build/static/js 3
-build/static/js 4
-build/images/about 2
-build/images/about 3
-build/images/about 4
-build/images/collageWork 2
-build/images/hero 2
-build/images/hero 3
-build/images/hero 4
-build/images/letteringCalligraphy 2
-build/images/portfolio 2
-build/images/portfolio 3
-build/images/portfolio 4
-build/images/portfolio 5
-build/images/Store 2
-build/images/Store 3

@@ -2,47 +2,109 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="%PUBLIC_URL%/favicon.svg?v=20260410"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="%PUBLIC_URL%/orb192.png?v=20260410"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="%PUBLIC_URL%/orb512.png?v=20260410"
+    />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/orb192.png?v=20260410" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Mike Terpeza's Art Dept - Explore paintings, illustrations, photography, calligraphy, printmaking, and digital art. View the full portfolio online."
+      content="Michael Terpeza (Mike Terpeza) — Midwest artist based in Wisconsin. Browse original paintings, illustrations, calligraphy, lettering, photography, and digital art. Original art for sale and available to commission. Serving Chicago, Minneapolis, and beyond."
     />
     <meta
       name="keywords"
-      content="art, portfolio, painting, illustration, photography, calligraphy, printmaking, digital art"
+      content="Michael Terpeza, Mike Terpeza, Mike Terpeza art, Michael Terpeza artist, Mike Terpeza paintings, art for sale, original paintings for sale, buy original art, original artwork, illustrations, calligraphy, lettering, graffiti art, hand lettering, digital lettering, photography, black and white photography, portrait photography, digital art, MS Paint art, printmaking, murals, street art, sketchbook art, Midwest artist, Wisconsin artist, Chicago artist, Minneapolis artist, Wisconsin art, Chicago art scene, Midwest art, independent artist, art portfolio, online art portfolio"
     />
-    <meta name="author" content="Mike Terpeza" />
+    <meta name="author" content="Michael Terpeza" />
+    <meta name="robots" content="index, follow" />
 
     <!-- Open Graph Meta Tags for Social Sharing -->
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Mike Terpeza's Art Dept - Online Portfolio"
+      content="Michael Terpeza — Art Dept | Paintings, Illustrations & Photography"
     />
     <meta
       property="og:description"
-      content="Web artist's portfolio featuring paintings, illustrations, photography, and more."
+      content="Michael Terpeza (Mike Terpeza) — Midwest artist based in Wisconsin. Original paintings, illustrations, calligraphy, lettering, and photography. Art for sale. Serving Chicago, Minneapolis, and beyond."
     />
+    <meta property="og:url" content="https://mikesartdept.com" />
+    <meta property="og:site_name" content="Mike Terpeza's Art Dept" />
     <meta
-      property="og:url"
-      content="https://artdeptdemo.eba-vcb9pd44.us-east-1.elasticbeanstalk.com"
+      property="og:image"
+      content="https://artdept-portfolio-test.s3.amazonaws.com/images/hero/helloStickerTemplate.png"
     />
-    <meta property="og:site_name" content="Art Dept" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Mike Terpeza's Art Dept" />
+    <meta
+      name="twitter:title"
+      content="Michael Terpeza — Art Dept | Paintings, Illustrations & Photography"
+    />
     <meta
       name="twitter:description"
-      content="View paintings, illustrations, photography, calligraphy, printmaking, and digital art."
+      content="Original paintings, illustrations, calligraphy, lettering, and photography by Michael Terpeza (Mike Terpeza). Art for sale."
+    />
+    <meta
+      name="twitter:image"
+      content="https://artdept-portfolio-test.s3.amazonaws.com/images/hero/helloStickerTemplate.png"
     />
 
-    <!-- Google Analytics -->
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Michael Terpeza",
+        "alternateName": "Mike Terpeza",
+        "url": "https://mikesartdept.com",
+        "image": "https://artdept-portfolio-test.s3.amazonaws.com/images/hero/helloStickerTemplate.png",
+        "sameAs": [],
+        "jobTitle": "Artist",
+        "description": "Michael Terpeza is a Midwest artist based in Wisconsin specializing in paintings, illustrations, calligraphy, hand lettering, photography, and digital art. Based near Chicago and Minneapolis. Original artwork available for sale.",
+        "knowsAbout": [
+          "painting",
+          "illustration",
+          "calligraphy",
+          "hand lettering",
+          "graffiti art",
+          "photography",
+          "digital art",
+          "printmaking"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "description": "Original paintings and artwork for sale. Custom commissions available.",
+          "seller": {
+            "@type": "Person",
+            "name": "Michael Terpeza"
+          }
+        }
+      }
+    </script>
+
+    <!-- Google Analytics 4 -->
     <script
       async
-      src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
+      src="https://www.googletagmanager.com/gtag/js?id=%REACT_APP_GA_MEASUREMENT_ID%"
     ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -50,10 +112,20 @@
         dataLayer.push(arguments);
       }
       gtag("js", new Date());
-      gtag("config", "G-XXXXXXXXXX"); <!-- Replace XXXXXXXXXX with your Google Analytics Measurement ID -->
+      gtag("config", "%REACT_APP_GA_MEASUREMENT_ID%", {
+        send_page_view: false,
+      });
     </script>
 
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="%PUBLIC_URL%/apple-touch-icon.png?v=20260410"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      href="%PUBLIC_URL%/apple-touch-icon-precomposed.png?v=20260410"
+    />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -68,8 +140,9 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <link href="%PUBLIC_URL%/static/css/main.62f965ef.css" rel="stylesheet" />
-    <title>Mike Terpeza's Art Dept - Online Portfolio</title>
+    <title>
+      Michael Terpeza — Art Dept | Paintings, Illustrations & Photography
+    </title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

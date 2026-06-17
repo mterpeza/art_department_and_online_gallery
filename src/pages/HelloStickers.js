@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiUrl } from "../utils/api";
+import GalleryLightbox from "../components/GalleryLightbox";
+import StickerShareMenu from "../components/StickerShareMenu";
 
 export default function HelloStickers() {
   const [stickers, setStickers] = useState([]);
@@ -77,6 +79,8 @@ export default function HelloStickers() {
     if (stickers.length <= 1 || activeStickerIndex === null) return;
     setActiveStickerIndex((activeStickerIndex + 1) % stickers.length);
   }, [activeStickerIndex, stickers.length]);
+  const isGalleryOpen =
+    activeStickerIndex !== null && Boolean(stickers[activeStickerIndex]);
 
   const handleCarouselTouchStart = (event) => {
     touchStartXRef.current = event.touches[0]?.clientX ?? null;
@@ -116,6 +120,29 @@ export default function HelloStickers() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeStickerIndex, showNextSticker, showPreviousSticker]);
+
+  useEffect(() => {
+    if (!isGalleryOpen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverscroll = document.body.style.overscrollBehavior;
+    const previousHtmlOverscroll =
+      document.documentElement.style.overscrollBehavior;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+    document.documentElement.style.overscrollBehavior = "none";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overscrollBehavior = previousBodyOverscroll;
+      document.documentElement.style.overscrollBehavior =
+        previousHtmlOverscroll;
+    };
+  }, [isGalleryOpen]);
 
   return (
     <div className="relative p-4 sm:p-8 max-w-6xl mx-auto">
@@ -214,7 +241,7 @@ export default function HelloStickers() {
           </div>
         </div>
       )}
-      <div className="mt-8 flex justify-end">
+      <div className="mt-8 flex justify-end pr-16">
         <Link
           to={{ pathname: "/", hash: "#check-in" }}
           className="inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-[#6cebe4] text-gray-900 font-semibold px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm hover:brightness-95 transition"
@@ -223,71 +250,33 @@ export default function HelloStickers() {
         </Link>
       </div>
 
-      {activeStickerIndex !== null && stickers[activeStickerIndex] ? (
-        <div
-          className="fixed inset-0 z-[120] bg-black/85 p-3 sm:p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Sticker carousel"
-          onClick={closeStickerCarousel}
-        >
-          <div className="relative h-full w-full flex items-center justify-center">
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                closeStickerCarousel();
-              }}
-              className="absolute top-1 right-1 sm:top-2 sm:right-2 rounded-md border border-white/40 bg-black/55 px-3 py-1 text-xs font-semibold text-white hover:bg-black/75"
-            >
-              Close
-            </button>
-
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                showPreviousSticker();
-              }}
-              className="absolute left-1 sm:left-3 rounded-full border border-white/40 bg-black/55 h-9 w-9 sm:h-10 sm:w-10 text-white text-xl leading-none hover:bg-black/75"
-              aria-label="Previous sticker"
-            >
-              {"<"}
-            </button>
-
-            <div
-              className="max-h-full max-w-[96vw] sm:max-w-[88vw] md:max-w-[80vw] lg:max-w-[72vw] flex flex-col items-center"
-              onClick={(event) => event.stopPropagation()}
-              onTouchStart={handleCarouselTouchStart}
-              onTouchEnd={handleCarouselTouchEnd}
-            >
-              <img
-                src={stickers[activeStickerIndex].imageData}
-                alt={`Sticker ${activeStickerIndex + 1}`}
-                className="max-h-[75vh] w-auto object-contain rounded"
-              />
-              <p className="mt-2 text-xs text-white/80 text-center">
-                {activeStickerIndex + 1} / {stickers.length}
-                {stickers[activeStickerIndex].createdAt
-                  ? ` • ${formatSavedAt(stickers[activeStickerIndex].createdAt)}`
-                  : ""}
+      <GalleryLightbox
+        isOpen={isGalleryOpen}
+        images={stickers.map((sticker) => sticker.imageData)}
+        activeIndex={activeStickerIndex}
+        title="Sticker"
+        viewerAriaLabel="Sticker carousel"
+        onClose={closeStickerCarousel}
+        onPrev={showPreviousSticker}
+        onNext={showNextSticker}
+        onSelectIndex={setActiveStickerIndex}
+        getImageAlt={(index) => `Sticker ${index + 1}`}
+        resolveImageSrc={(imageSrc) => imageSrc}
+        onContentTouchStart={handleCarouselTouchStart}
+        onContentTouchEnd={handleCarouselTouchEnd}
+        renderCaption={(index) => {
+          const s = stickers[index];
+          return (
+            <div className="flex flex-col items-center gap-2 py-1">
+              <p className="text-xs text-white/60">
+                {index + 1} / {stickers.length}
+                {s?.createdAt ? ` • ${formatSavedAt(s.createdAt)}` : ""}
               </p>
+              <StickerShareMenu imageData={s?.imageData} />
             </div>
-
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                showNextSticker();
-              }}
-              className="absolute right-1 sm:right-3 rounded-full border border-white/40 bg-black/55 h-9 w-9 sm:h-10 sm:w-10 text-white text-xl leading-none hover:bg-black/75"
-              aria-label="Next sticker"
-            >
-              {">"}
-            </button>
-          </div>
-        </div>
-      ) : null}
+          );
+        }}
+      />
     </div>
   );
 }

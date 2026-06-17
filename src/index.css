@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+	--light-accent-magenta: #ff4000;
+	--light-accent-magenta-strong: #ff4000;
+}
+
+html:not(.dark) .site-accent-scope .text-\[\#6cebe4\] {
+	color: var(--light-accent-magenta) !important;
+}
+
+html:not(.dark) .site-accent-scope .text-\[\#256c68\],
+html:not(.dark) .site-accent-scope .text-emerald-600,
+html:not(.dark) .site-accent-scope .text-emerald-700 {
+	color: var(--light-accent-magenta-strong) !important;
+}
+
 .paintings-scrollbar {
 	-ms-overflow-style: none;
 	scrollbar-width: none;
@@ -212,6 +227,254 @@
 	}
 
 	.about-orb {
+		animation: none;
+	}
+}
+
+/* ---- Light-mode About page accent overrides ---- */
+
+@keyframes about-border-final-glow-light {
+	0% {
+		border-color: rgba(171, 24, 111, 0.45);
+		box-shadow: 0 0 4px rgba(171, 24, 111, 0.28);
+	}
+	100% {
+		border-color: rgba(171, 24, 111, 0.9);
+		box-shadow: 0 0 12px rgba(171, 24, 111, 0.62);
+	}
+}
+
+html:not(.dark) .about-orb {
+	display: none;
+}
+
+/* Store cards: always keep the teal/green accent regardless of light or dark mode */
+html:not(.dark) .site-accent-scope .store-card .text-\[\#256c68\] {
+	color: #256c68 !important;
+}
+
+html:not(.dark) .site-accent-scope .store-card .text-emerald-700 {
+	color: #047857 !important;
+}
+
+/* Light mode: eliminate image glow */
+html:not(.dark) .about-image-glow {
+	border: 0.8px solid transparent !important;
+	box-shadow: none !important;
+	animation: none !important;
+}
+
+html:not(.dark) .about-image-glow::before {
+	animation: none !important;
+	opacity: 0 !important;
+}
+
+/* Progress bar spring animation with enhanced bounce */
+@keyframes spring-width {
+	0% {
+		width: 0 !important;
+	}
+	50% {
+		width: calc(var(--target-width, 100%) * 1.25) !important;
+	}
+	70% {
+		width: calc(var(--target-width, 100%) * 0.94) !important;
+	}
+	85% {
+		width: calc(var(--target-width, 100%) * 1.06) !important;
+	}
+	100% {
+		width: var(--target-width, 100%) !important;
+	}
+}
+
+/* iOS-safe variant: animate transform scale instead of width calc math */
+@-webkit-keyframes spring-scale-x {
+	0% {
+		-webkit-transform: scaleX(0);
+		transform: scaleX(0);
+	}
+	50% {
+		-webkit-transform: scaleX(1.25);
+		transform: scaleX(1.25);
+	}
+	70% {
+		-webkit-transform: scaleX(0.94);
+		transform: scaleX(0.94);
+	}
+	85% {
+		-webkit-transform: scaleX(1.06);
+		transform: scaleX(1.06);
+	}
+	100% {
+		-webkit-transform: scaleX(1);
+		transform: scaleX(1);
+	}
+}
+
+@keyframes spring-scale-x {
+	0% {
+		transform: scaleX(0);
+	}
+	50% {
+		transform: scaleX(1.25);
+	}
+	70% {
+		transform: scaleX(0.94);
+	}
+	85% {
+		transform: scaleX(1.06);
+	}
+	100% {
+		transform: scaleX(1);
+	}
+}
+
+/* ============================================================
+   🍎  APPLE IIe MODE EASTER EGG
+   Authentic P31 phosphor (~99° hue, yellow-green)
+   280×192 HGR palette: black, white, violet, green, orange, blue
+   40×24 text mode, 1 MHz 6502, composite NTSC video
+   ============================================================ */
+
+/* P31 phosphor: peak emission ~520–530nm, appears as warm yellow-green */
+/* Authentic Apple IIe monitor green: ~hsl(99, 100%, 47%) */
+
+@keyframes gs-flicker {
+	/* Simulates 60Hz NTSC video circuitry instability */
+	0%, 100% { opacity: 1; }
+	18%  { opacity: 0.99; }
+	19%  { opacity: 0.93; }
+	20%  { opacity: 1; }
+	55%  { opacity: 0.98; }
+	72%  { opacity: 1; }
+	73%  { opacity: 0.95; }
+	74%  { opacity: 1; }
+}
+
+@keyframes gs-cursor-blink {
+	/* Apple IIe block cursor blinked at ~1Hz (every 30 frames at 60Hz) */
+	0%, 49% { opacity: 1; }
+	50%, 100% { opacity: 0; }
+}
+
+/* Base: black background — composite monitor with phosphor CRT */
+html.green-screen,
+html.green-screen body {
+	background: #000 !important;
+}
+
+html.green-screen body {
+	animation: gs-flicker 8s ease-in-out infinite;
+}
+
+/* Scanline overlay — Apple IIe HGR: 192 active lines, ~1px gap each */
+html.green-screen body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: 999998;
+	pointer-events: none;
+	background: repeating-linear-gradient(
+		0deg,
+		transparent,
+		transparent 3px,
+		rgba(0, 0, 0, 0.30) 3px,
+		rgba(0, 0, 0, 0.30) 4px
+	);
+}
+
+/* CRT barrel/vignette — Apple IIe Monitor II had visible edge falloff */
+html.green-screen body::after {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: 999997;
+	pointer-events: none;
+	background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.65) 100%);
+}
+
+/* All elements: P31 phosphor color, black bg, monospace
+   Letter-spacing approximates 40-column 7px-wide character cells */
+html.green-screen * {
+	color: #4bef00 !important;
+	background-color: #000 !important;
+	border-color: rgba(75, 239, 0, 0.25) !important;
+	font-family: "Courier New", Courier, monospace !important;
+	letter-spacing: 0.05em !important;
+	/* Phosphor persistence: sharp core + soft outer bloom */
+	text-shadow: 0 0 1px rgba(75, 239, 0, 0.95), 0 0 6px rgba(75, 239, 0, 0.5), 0 0 14px rgba(75, 239, 0, 0.2) !important;
+	box-shadow: none !important;
+	backdrop-filter: none !important;
+	-webkit-backdrop-filter: none !important;
+	background-image: none !important;
+	border-radius: 0 !important;
+	animation: none !important;
+	transition: none !important;
+}
+
+/* Hover: inverse video effect (standard Apple IIe text highlight) */
+html.green-screen a:hover,
+html.green-screen button:hover {
+	background-color: #003800 !important;
+	text-shadow: 0 0 2px rgba(75, 239, 0, 0.95), 0 0 10px rgba(75, 239, 0, 0.8) !important;
+}
+
+/* Images: desaturate → tint P31 green + pixelate to simulate HGR/LGR mode */
+html.green-screen img {
+	filter: grayscale(1) sepia(0.9) hue-rotate(75deg) saturate(10) brightness(0.55) contrast(1.15) !important;
+	image-rendering: pixelated !important;
+	image-rendering: crisp-edges !important;
+	opacity: 0.72 !important;
+	background-color: #000 !important;
+}
+
+/* Canvas (sticker drawing area) — Lo-Res / Hi-Res mode tint */
+html.green-screen canvas {
+	filter: hue-rotate(75deg) saturate(6) brightness(0.72) !important;
+	background-color: #000e00 !important;
+}
+
+/* SVG icons – force stroke/fill to P31 phosphor */
+html.green-screen svg {
+	color: #4bef00 !important;
+}
+html.green-screen svg path,
+html.green-screen svg circle,
+html.green-screen svg rect,
+html.green-screen svg polyline,
+html.green-screen svg line {
+	stroke: #4bef00 !important;
+	fill: none !important;
+}
+html.green-screen svg [fill]:not([fill="none"]) {
+	fill: #4bef00 !important;
+}
+
+/* The easter egg glyph button — block cursor, blinks at ~1Hz like Apple IIe */
+html.green-screen footer button[aria-label="Disable green screen mode"] {
+	opacity: 1 !important;
+	color: #4bef00 !important;
+	text-shadow: 0 0 8px #4bef00, 0 0 20px rgba(75, 239, 0, 0.5) !important;
+	animation: gs-cursor-blink 1s step-end infinite !important;
+}
+
+/* Keep the back-to-top button accessible */
+html.green-screen .fixed.rounded-full {
+	background-color: #001400 !important;
+	border-color: #4bef00 !important;
+}
+
+/* Scrollbar */
+html.green-screen ::-webkit-scrollbar {
+	background: #000 !important;
+}
+html.green-screen ::-webkit-scrollbar-thumb {
+	background: #154a00 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html.green-screen body {
 		animation: none;
 	}
 }

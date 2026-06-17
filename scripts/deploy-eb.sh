@@ -21,6 +21,10 @@ fi
 
 echo "[1/5] Building frontend in ${ROOT_DIR} with S3 asset base"
 cd "${ROOT_DIR}"
+GIT_SHA="$(git rev-parse --short HEAD 2>/dev/null || echo nosha)"
+BUILD_STAMP="$(date +%y%m%d.%H%M)"
+export REACT_APP_BUILD_VERSION="v${BUILD_STAMP}-${GIT_SHA}"
+echo "Build version: ${REACT_APP_BUILD_VERSION}"
 npm run build
 
 echo "[2/5] Removing local bundled images from build output"
@@ -32,9 +36,25 @@ if [[ ! -f "${ROOT_DIR}/build/index.html" ]]; then
   exit 1
 fi
 
+# EB CLI can fail archiving when dangling symlinks exist under node_modules/.bin.
+if [[ -d "${ROOT_DIR}/node_modules/.bin" ]]; then
+  find -L "${ROOT_DIR}/node_modules/.bin" -type l -delete || true
+fi
+
 echo "[4/5] Deploying to Elastic Beanstalk environment: ${ENV_NAME}"
 cd "${ROOT_DIR}"
 eb deploy "${ENV_NAME}"
 
 echo "[5/5] Deployment status"
 eb status "${ENV_NAME}"
+
+# Optional: invalidate CloudFront cache after deploy
+# Set CLOUDFRONT_DISTRIBUTION_ID as an env var or replace the placeholder below.
+CF_ID="${CLOUDFRONT_DISTRIBUTION_ID:-}"
+if [[ -n "$CF_ID" ]]; then
+  echo "[+] Invalidating CloudFront distribution ${CF_ID}..."
+  aws cloudfront create-invalidation --distribution-id "$CF_ID" --paths "/*" 2>&1 | grep -E "InvalidationId|Status|Paths" || true
+  echo "    CloudFront invalidation created."
+else
+  echo "[+] Skipping CloudFront invalidation (set CLOUDFRONT_DISTRIBUTION_ID env var to enable)."
+fi

@@ -1,9 +1,21 @@
 // --- Begin full interactive CheckInSection ---
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { apiUrl } from "../utils/api";
+import { trackStickerDrawStart, trackStickerSubmit } from "../utils/analytics";
+import GalleryLightbox from "./GalleryLightbox";
+import StickerShareMenu from "./StickerShareMenu";
 
 export default function LeaveYourMark() {
-  const stickerTemplateSrc = "/helloStickerTemplate.png";
+  // Use the visitor's local date so the swap happens at their local midnight.
+  const _now = new Date();
+  const _isDonutDay =
+    _now.getFullYear() === 2026 &&
+    _now.getMonth() === 5 && // 0-indexed: 5 = June
+    _now.getDate() === 5;
+  const stickerTemplateSrc = _isDonutDay
+    ? "/api/sticker-template/donutday26"
+    : "/helloStickerTemplate.png";
   const canvasRef = useRef(null);
   const fluorescentPinkValue = "#ff4fd1";
   const [inkColor, setInkColor] = useState("");
@@ -14,11 +26,23 @@ export default function LeaveYourMark() {
   const [hasDrawingStarted, setHasDrawingStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [submittedImageData, setSubmittedImageData] = useState(null);
+  const [templateAspect, setTemplateAspect] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
   const [stickers, setStickers] = useState([]);
-  const [viewportWidth, setViewportWidth] = useState(
-    typeof window === "undefined" ? 1024 : window.innerWidth,
+  const [feedStatus, setFeedStatus] = useState("idle");
+  const getRecentCheckInLimit = () => {
+    if (typeof window === "undefined") return 4;
+    const width = window.innerWidth || 0;
+    if (width >= 1280) return 6;
+    if (width >= 768) return 4;
+    if (width >= 480) return 4;
+    return 3;
+  };
+  const [recentCheckInLimit, setRecentCheckInLimit] = useState(
+    getRecentCheckInLimit,
   );
-  const maxExportWidth = 1100;
+  const maxExportWidth = 800;
   const drawStateRef = useRef({
     isDrawing: false,
     lastX: 0,
@@ -31,6 +55,8 @@ export default function LeaveYourMark() {
     lastMoveAt: 0,
     lastDripAt: 0,
   });
+  const pendingServerConfirmationsRef = useRef(new Map());
+  const lightboxTouchStartXRef = useRef(null);
 
   const getCanvasPoint = (event) => {
     const canvas = canvasRef.current;
@@ -41,8 +67,8 @@ export default function LeaveYourMark() {
     return { x, y };
   };
 
-  const addGelPenSparkles = (ctx, width) => {
-    const sparkleCount = Math.max(4, Math.round(width / 3.4));
+  const addGelPenSparkles = (ctx, width, intensity = 1) => {
+    const sparkleCount = Math.max(2, Math.round((width / 3.4) * intensity));
     ctx.save();
     ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
     ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
@@ -51,11 +77,11 @@ export default function LeaveYourMark() {
       const px = (Math.random() - 0.5) * width * 1.2;
       const py = (Math.random() - 0.5) * width * 0.8;
       const radius = Math.max(0.4, width * (0.04 + Math.random() * 0.05));
-      ctx.globalAlpha = 0.45 + Math.random() * 0.42;
+      ctx.globalAlpha = (0.45 + Math.random() * 0.42) * intensity;
       ctx.beginPath();
       ctx.arc(px, py, radius, 0, Math.PI * 2);
       ctx.fill();
-      if (Math.random() < 0.72) {
+      if (Math.random() < 0.72 * intensity) {
         const streakLength = width * (0.1 + Math.random() * 0.12);
         ctx.lineWidth = Math.max(0.4, radius * 0.9);
         ctx.beginPath();
@@ -74,6 +100,7 @@ export default function LeaveYourMark() {
   };
 
   const stampNib = (ctx, x, y, width = nibSize) => {
+    const isMetallic = inkColor === "#bcc2cb" || inkColor === "#b8952a";
     ctx.save();
     ctx.translate(x, y);
     ctx.fillStyle = inkColor;
@@ -81,6 +108,9 @@ export default function LeaveYourMark() {
     if (inkColor === fluorescentPinkValue) {
       ctx.shadowColor = "rgba(255, 255, 255, 0.28)";
       ctx.shadowBlur = Math.max(1.5, width * 0.18);
+    } else if (isMetallic) {
+      ctx.shadowColor = "rgba(255, 255, 255, 0.18)";
+      ctx.shadowBlur = Math.max(1, width * 0.1);
     }
     if (nibShape === "round") {
       ctx.beginPath();
@@ -92,6 +122,13 @@ export default function LeaveYourMark() {
         ctx.arc(0, 0, width * 0.72, 0, Math.PI * 2);
         ctx.clip();
         addGelPenSparkles(ctx, width);
+        ctx.restore();
+      } else if (isMetallic) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, width * 0.72, 0, Math.PI * 2);
+        ctx.clip();
+        addGelPenSparkles(ctx, width, 0.3);
         ctx.restore();
       }
     } else {
@@ -105,6 +142,13 @@ export default function LeaveYourMark() {
         ctx.ellipse(0, 0, width, width * 0.3, 0, 0, Math.PI * 2);
         ctx.clip();
         addGelPenSparkles(ctx, width);
+        ctx.restore();
+      } else if (isMetallic) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, width, width * 0.3, 0, 0, Math.PI * 2);
+        ctx.clip();
+        addGelPenSparkles(ctx, width, 0.3);
         ctx.restore();
       }
     }
@@ -120,7 +164,7 @@ export default function LeaveYourMark() {
     const stepSize =
       nibShape === "round"
         ? Math.max(0.6, nibSize * 0.22)
-        : Math.max(1.1, nibSize * 0.3);
+        : Math.max(0.4, nibSize * 0.1);
     const steps = Math.max(1, Math.ceil(distance / stepSize));
     for (let i = 0; i <= steps; i += 1) {
       const t = i / steps;
@@ -231,6 +275,7 @@ export default function LeaveYourMark() {
     }
     if (ctx) {
       stampNib(ctx, point.x, point.y);
+      if (!hasDrawingStarted) trackStickerDrawStart();
       setHasDrawingStarted(true);
     }
   };
@@ -242,8 +287,8 @@ export default function LeaveYourMark() {
     const point = getCanvasPoint(event);
     if (!point) return;
     const now = Date.now();
-    const smoothX = state.smoothX + (point.x - state.smoothX) * 0.55;
-    const smoothY = state.smoothY + (point.y - state.smoothY) * 0.55;
+    const smoothX = state.smoothX + (point.x - state.smoothX) * 0.4;
+    const smoothY = state.smoothY + (point.y - state.smoothY) * 0.4;
     const distance = Math.hypot(smoothX - state.lastX, smoothY - state.lastY);
     const deltaMs = Math.max(1, now - state.lastMoveAt);
     drawSegment(state.lastX, state.lastY, smoothX, smoothY);
@@ -270,19 +315,43 @@ export default function LeaveYourMark() {
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasDrawingStarted(false);
+    setSubmittedImageData(null);
   };
 
   const fetchCheckInFeed = useCallback(async () => {
+    setFeedStatus("syncing");
     try {
       const stickersRes = await fetch(
         apiUrl("/api/checkin-stickers?limit=300"),
       );
       if (stickersRes.ok) {
         const stickerRows = await stickersRes.json();
-        setStickers(Array.isArray(stickerRows) ? stickerRows : []);
+        const serverRows = Array.isArray(stickerRows) ? stickerRows : [];
+        const serverIds = new Set(serverRows.map((item) => item.id));
+        const now = Date.now();
+
+        for (const [id, pending] of pendingServerConfirmationsRef.current) {
+          if (serverIds.has(id) || pending.expiresAt <= now) {
+            pendingServerConfirmationsRef.current.delete(id);
+          }
+        }
+
+        const pendingRows = Array.from(
+          pendingServerConfirmationsRef.current.values(),
+        )
+          .map((entry) => entry.sticker)
+          .filter((item) => !serverIds.has(item.id));
+
+        setStickers([...pendingRows, ...serverRows]);
+        setFeedStatus("ok");
+        return true;
       }
+      setFeedStatus("error");
+      return false;
     } catch {
       // Ignore feed errors and keep drawing available.
+      setFeedStatus("error");
+      return false;
     }
   }, []);
 
@@ -342,11 +411,26 @@ export default function LeaveYourMark() {
             exportWidth,
             trimmedHeight,
           );
-          return trimmedCanvas.toDataURL("image/png");
+          return compressToLimit(trimmedCanvas);
         }
       }
     }
-    return exportCanvas.toDataURL("image/png");
+    return compressToLimit(exportCanvas);
+  };
+
+  // Progressively lower quality until the data URL fits under ~290 KB
+  // (DynamoDB's 400 KB item limit minus attribute overhead, accounting for
+  // base64's ~33% size expansion).
+  const compressToLimit = (canvas) => {
+    const maxBytes = 290 * 1024;
+    for (const quality of [0.85, 0.75, 0.6, 0.45]) {
+      const dataUrl = canvas.toDataURL("image/webp", quality);
+      // data URLs are base64 after the comma — each base64 char ≈ 0.75 bytes
+      const base64 = dataUrl.split(",")[1] || "";
+      if (base64.length * 0.75 <= maxBytes) return dataUrl;
+    }
+    // Last resort: smallest acceptable quality
+    return canvas.toDataURL("image/webp", 0.35);
   };
 
   const saveSticker = async () => {
@@ -400,18 +484,44 @@ export default function LeaveYourMark() {
         setSaveMessage(
           "Sticker was rejected by the content policy and was not published.",
         );
+        trackStickerSubmit("rejected");
       } else if (moderationStatus === "pending") {
         setSaveMessage(
           "Sticker submitted for moderation. It will appear publicly after approval.",
         );
+        trackStickerSubmit("pending");
       } else {
         setSaveMessage("Sticker saved.");
+        trackStickerSubmit("approved");
+        setSubmittedImageData(pngData);
+        const optimisticSticker = {
+          id: responseBody?.id || `local-${Date.now()}`,
+          username: responseBody?.username || "Anonymous",
+          imageData: pngData,
+          createdAt: responseBody?.createdAt || new Date().toISOString(),
+          moderationStatus,
+        };
+        setStickers((previous) => {
+          const withoutDuplicate = previous.filter(
+            (item) => item.id !== optimisticSticker.id,
+          );
+          return [optimisticSticker, ...withoutDuplicate];
+        });
+
+        pendingServerConfirmationsRef.current.set(optimisticSticker.id, {
+          sticker: optimisticSticker,
+          expiresAt: Date.now() + 2 * 60 * 1000,
+        });
       }
 
       clearDrawing();
-      await fetchCheckInFeed();
+      // Delay the background re-fetch so DynamoDB eventually-consistent reads
+      // have time to see the newly-written item before we overwrite local state.
+      setTimeout(() => fetchCheckInFeed(), 1500);
+      setTimeout(() => fetchCheckInFeed(), 6000);
     } catch {
       setSaveMessage("Online save failed. Please try again.");
+      trackStickerSubmit("error");
     }
     setIsSaving(false);
   };
@@ -514,9 +624,19 @@ export default function LeaveYourMark() {
   }, [fetchCheckInFeed]);
 
   useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize, { passive: true });
-    return () => window.removeEventListener("resize", handleResize);
+    if (typeof window === "undefined") return undefined;
+    const updateRecentCheckInLimit = () => {
+      setRecentCheckInLimit(getRecentCheckInLimit());
+    };
+
+    updateRecentCheckInLimit();
+    window.addEventListener("resize", updateRecentCheckInLimit);
+    window.addEventListener("orientationchange", updateRecentCheckInLimit);
+
+    return () => {
+      window.removeEventListener("resize", updateRecentCheckInLimit);
+      window.removeEventListener("orientationchange", updateRecentCheckInLimit);
+    };
   }, []);
 
   const inks = [
@@ -561,29 +681,137 @@ export default function LeaveYourMark() {
     return Date.now() - parsed <= 24 * 60 * 60 * 1000;
   };
 
-  const visibleStickerCount =
-    viewportWidth < 640 ? 3 : viewportWidth < 1024 ? 4 : 6;
-  const recentStickers = stickers.slice(0, visibleStickerCount);
+  const shareSticker = async () => {
+    if (!submittedImageData) return;
+    const shareUrl = window.location.origin + "/hello-stickers";
+    const shareTitle = "My Hello Sticker — Mike's Art Dept";
+    const shareText =
+      "I just left my mark at Mike's Art Dept! Come say hello 👋";
+    try {
+      const res = await fetch(submittedImageData);
+      const blob = await res.blob();
+      const file = new File([blob], "hello-sticker.webp", { type: blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      }
+    } catch {
+      // file sharing not supported or cancelled — try URL-only
+    }
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch {
+        // user cancelled or not supported — fall through to download
+      }
+    }
+    // Final fallback: download the image
+    const a = document.createElement("a");
+    a.href = submittedImageData;
+    a.download = "hello-sticker.webp";
+    a.click();
+  };
+
+  const recentStickers = stickers.slice(0, recentCheckInLimit);
+  const isLightboxOpen = lightboxIndex !== null;
+
+  // Lock body scroll when lightbox is open
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverscroll = document.body.style.overscrollBehavior;
+    const prevHtmlOverscroll =
+      document.documentElement.style.overscrollBehavior;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overscrollBehavior = "none";
+    document.documentElement.style.overscrollBehavior = "none";
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overscrollBehavior = prevBodyOverscroll;
+      document.documentElement.style.overscrollBehavior = prevHtmlOverscroll;
+    };
+  }, [isLightboxOpen]);
+
+  // Keyboard nav for lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setLightboxIndex(null);
+      else if (event.key === "ArrowLeft")
+        setLightboxIndex((i) => Math.max(0, (i ?? 1) - 1));
+      else if (event.key === "ArrowRight")
+        setLightboxIndex((i) =>
+          Math.min(recentStickers.length - 1, (i ?? 0) + 1),
+        );
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLightboxOpen, recentStickers.length]);
+
+  const handleLightboxTouchStart = (event) => {
+    lightboxTouchStartXRef.current = event.touches[0]?.clientX ?? null;
+  };
+
+  const handleLightboxTouchEnd = (event) => {
+    if (lightboxTouchStartXRef.current === null) return;
+    const touchEndX = event.changedTouches[0]?.clientX;
+    if (touchEndX === undefined) return;
+    const deltaX = touchEndX - lightboxTouchStartXRef.current;
+    lightboxTouchStartXRef.current = null;
+    if (Math.abs(deltaX) < 40) return;
+    if (deltaX > 0) setLightboxIndex((i) => Math.max(0, (i ?? 1) - 1));
+    else
+      setLightboxIndex((i) =>
+        Math.min(recentStickers.length - 1, (i ?? 0) + 1),
+      );
+  };
 
   return (
-    <section id="check-in" className="px-4 sm:px-6 pb-8 scroll-mt-24">
+    <section id="check-in" className="px-4 sm:px-6 pb-24 lg:pb-8 scroll-mt-24">
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 shadow-sm p-4 sm:p-5 md:p-6">
         <div className="mb-4">
-          <p className="text-xs uppercase tracking-[0.16em] text-[#6cebe4] font-semibold mb-1">
-            Check-In
+          <p className="text-xs uppercase tracking-[0.16em] text-[#6cebe4] font-semibold mb-3">
+            Check in
           </p>
-          <h2 className="text-2xl md:text-3xl font-bold">Leave Your Mark</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            Draw directly on the sticker template with a slanted calligraphy
-            nib. Toggle drips, switch nib shape, and adjust nib size.
+          <h2 className="text-2xl md:text-3xl font-bold">Say HELLO!</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-3">
+            Draw directly on the sticker. Use the settings to adjust your style.
           </p>
         </div>
         {saveMessage && (
-          <p className="text-sm mb-3 text-gray-700 dark:text-gray-300">
+          <p
+            className={
+              saveMessage === "Choose an ink color before drawing."
+                ? "text-sm font-bold mb-3 tracking-wide"
+                : "text-sm mb-3 text-gray-700 dark:text-gray-300"
+            }
+            style={
+              saveMessage === "Choose an ink color before drawing."
+                ? { color: "#c9a227" }
+                : undefined
+            }
+          >
+            {saveMessage === "Choose an ink color before drawing." ? "⚠ " : ""}
             {saveMessage}
           </p>
         )}
         <div className="w-full max-w-3xl lg:max-w-full mx-auto lg:mx-0 mt-4 mb-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6cebe4] mb-2">
+            Settings
+          </p>
           <div className="grid grid-cols-1 sm:flex sm:flex-wrap lg:flex-nowrap items-stretch sm:items-center justify-center sm:justify-start gap-2">
             <label className="inline-flex w-full sm:w-auto lg:flex-1 lg:min-w-0 lg:min-h-[56px] items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 px-2.5 py-1.5">
               <span className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-600 dark:text-gray-300">
@@ -706,14 +934,15 @@ export default function LeaveYourMark() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,48rem)_minmax(0,1fr)] gap-[10px] lg:gap-x-[10px] items-stretch">
           <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 mb-1 lg:col-span-2">
-            Community policy: submissions containing racist, hateful, or harmful
+            Community policy: Submissions containing racist, hateful, or harmful
             symbols are blocked from publication.
           </p>
           <div className="w-full max-w-4xl mx-auto lg:mx-0">
             <div
-              className="relative aspect-[4/3] select-none"
+              className="relative select-none"
               onContextMenu={(event) => event.preventDefault()}
               style={{
+                aspectRatio: templateAspect ? String(templateAspect) : "4/3",
                 userSelect: "none",
                 WebkitUserSelect: "none",
                 WebkitTouchCallout: "none",
@@ -726,6 +955,12 @@ export default function LeaveYourMark() {
                 className="absolute inset-0 w-full h-full object-contain"
                 draggable={false}
                 onDragStart={(event) => event.preventDefault()}
+                onLoad={(e) => {
+                  const { naturalWidth, naturalHeight } = e.target;
+                  if (naturalWidth && naturalHeight) {
+                    setTemplateAspect(naturalWidth / naturalHeight);
+                  }
+                }}
               />
               <canvas
                 ref={canvasRef}
@@ -745,34 +980,62 @@ export default function LeaveYourMark() {
                 }}
               />
             </div>
-            <div className="mt-3 flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={saveSticker}
-                disabled={isSaving || !hasDrawingStarted}
-                className="w-full px-3 py-2 rounded-md border border-[#2f7f13] bg-[#4cbb17] text-white text-sm font-semibold hover:brightness-95 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? "Posting..." : "POST IT"}
-              </button>
-              <button
-                type="button"
-                onClick={clearDrawing}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                Clear
-              </button>
+            <div className="mt-3 flex flex-col-reverse sm:flex-col gap-2">
+              <div className="flex flex-col lg:flex-row gap-2">
+                <button
+                  type="button"
+                  onClick={saveSticker}
+                  disabled={isSaving || !hasDrawingStarted}
+                  className="w-full px-3 py-2 rounded-md border border-[#2f7f13] bg-[#4cbb17] text-white text-sm font-semibold hover:brightness-95 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? "Posting..." : "Post it"}
+                </button>
+                <button
+                  type="button"
+                  onClick={clearDrawing}
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-sm font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Clear
+                </button>
+              </div>
+              {submittedImageData && (
+                <button
+                  type="button"
+                  onClick={shareSticker}
+                  className="w-full px-3 py-2 rounded-md border border-[#6cebe4] text-[#6cebe4] text-sm font-semibold hover:bg-[#6cebe4]/10 transition-colors"
+                >
+                  Share your sticker ↗
+                </button>
+              )}
             </div>
           </div>
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 h-auto lg:h-full flex flex-col mt-2 lg:mt-0">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-300 mb-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-[#6cebe4] mb-3">
               Recent Check-Ins
             </h3>
+            {feedStatus === "syncing" && (
+              <p className="-mt-2 mb-2 text-[11px] text-gray-500 dark:text-gray-400">
+                Syncing check-ins...
+              </p>
+            )}
+            {feedStatus === "error" && (
+              <p className="-mt-2 mb-2 text-[11px] text-amber-600 dark:text-amber-400">
+                Could not refresh feed. New saves may still appear shortly.
+              </p>
+            )}
             {stickers.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-2 overflow-visible lg:overflow-y-auto pr-1 flex-none lg:flex-1 content-start max-h-none lg:max-h-[85vh]">
                 {recentStickers.map((sticker, idx) => (
                   <div
                     key={sticker.createdAt || idx}
-                    className="overflow-hidden flex flex-col gap-0"
+                    className="overflow-hidden flex flex-col gap-0 cursor-pointer group"
+                    onClick={() => setLightboxIndex(idx)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && setLightboxIndex(idx)
+                    }
+                    aria-label="Preview sticker"
                   >
                     <div className="flex justify-end h-1.5 sm:h-2 pr-0.5 mb-0">
                       <span
@@ -813,12 +1076,67 @@ export default function LeaveYourMark() {
             )}
             <a
               href="/hello-stickers"
-              className="mt-4 inline-flex items-center justify-center rounded-md bg-[#6cebe4] text-gray-900 font-semibold px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm hover:brightness-95 transition"
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-[#ff4000] dark:bg-[#6cebe4] text-white dark:text-gray-900 font-semibold px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm hover:brightness-95 transition"
             >
-              View Full Sticker Gallery
+              View full gallery
             </a>
           </div>
         </div>
+      </div>
+
+      {/* Sticker lightbox — same GalleryLightbox used on the Portfolio/Gallery page */}
+      {createPortal(
+        <GalleryLightbox
+          isOpen={isLightboxOpen}
+          images={stickers.map((s) => s.imageData)}
+          activeIndex={lightboxIndex ?? 0}
+          title="Check-in Sticker"
+          viewerAriaLabel="Check-in sticker viewer"
+          onClose={() => setLightboxIndex(null)}
+          onPrev={() => setLightboxIndex((i) => Math.max(0, (i ?? 1) - 1))}
+          onNext={() =>
+            setLightboxIndex((i) => Math.min(stickers.length - 1, (i ?? 0) + 1))
+          }
+          onSelectIndex={(i) => setLightboxIndex(i)}
+          getImageAlt={(i) => `Check-in sticker ${i + 1}`}
+          resolveImageSrc={(src) => src}
+          onContentTouchStart={handleLightboxTouchStart}
+          onContentTouchEnd={handleLightboxTouchEnd}
+          renderCaption={(i) => {
+            const s = stickers[i];
+            if (!s) return null;
+            return (
+              <div className="flex flex-col items-center gap-2 py-1">
+                <p className="text-xs text-white/60">
+                  {i + 1} / {stickers.length}
+                  {s.createdAt ? ` • ${formatSavedAt(s.createdAt)}` : ""}
+                </p>
+                <StickerShareMenu imageData={s.imageData} />
+              </div>
+            );
+          }}
+        />,
+        document.body,
+      )}
+
+      {/* Rabbit Hole promo — mobile only */}
+      <div className="sm:hidden mt-6 rounded-xl bg-[#0a0f2e] px-5 py-6 text-center shadow-md">
+        <p className="text-[#f5c518] font-bold text-lg leading-snug">
+          ...But wait, there's more!
+        </p>
+        <p className="text-[#f5c518] font-semibold text-base mt-1 leading-snug">
+          Dive into the Rabbit Hole and pass a little time..
+        </p>
+        <a
+          href="/portfolio#junk-drawer"
+          className="mt-4 inline-flex items-center gap-2 rounded-md bg-[#f5c518] text-[#0a0f2e] font-bold px-4 py-2 text-sm hover:brightness-95 transition"
+          aria-label="Go to Rabbit Hole section"
+        >
+          <span role="img" aria-hidden="true">
+            🐇
+          </span>
+          Rabbit Hole
+        </a>
       </div>
     </section>
   );

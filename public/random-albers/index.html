@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Random Albers</title>
+  </head>
+  <body>
+    <div class="container">
+      <button
+        id="albersCanvas"
+        class="albers-canvas"
+        type="button"
+        aria-label="Create random Albers composition"
+      >
+        <span id="squarePrompt" class="square-prompt">Click to Create!</span>
+        <div id="squareFour">
+          <div id="squareThree">
+            <div id="squareTwo">
+              <div id="squareOne"></div>
+            </div>
+          </div>
+        </div>
+      </button>
+      <div class="share-wrapper" id="shareWrapper" hidden>
+        <button
+          id="shareBtn"
+          class="share-btn"
+          type="button"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-label="Share this composition"
+        >
+          Share
+        </button>
+        <div class="share-menu" id="shareMenu" hidden>
+          <button type="button" class="share-menu-item" id="smNative">
+            <span aria-hidden="true">&#x1F4E4;</span><span>Share</span>
+          </button>
+          <a
+            class="share-menu-item"
+            id="smFacebook"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="share-menu-icon-text" aria-hidden="true">f</span
+            ><span>Facebook</span>
+          </a>
+          <button type="button" class="share-menu-item" id="smInstagram">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              style="flex-shrink: 0"
+            >
+              <defs>
+                <linearGradient
+                  id="ig-albers"
+                  x1="0%"
+                  y1="100%"
+                  x2="100%"
+                  y2="0%"
+                >
+                  <stop offset="0%" stop-color="#f9ce34" />
+                  <stop offset="30%" stop-color="#ee2a7b" />
+                  <stop offset="100%" stop-color="#6228d7" />
+                </linearGradient>
+              </defs>
+              <rect
+                x="2"
+                y="2"
+                width="20"
+                height="20"
+                rx="5"
+                ry="5"
+                stroke="url(#ig-albers)"
+                stroke-width="2"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="4.5"
+                stroke="url(#ig-albers)"
+                stroke-width="2"
+              />
+              <circle cx="17.5" cy="6.5" r="1.2" fill="url(#ig-albers)" />
+            </svg>
+            <span>Instagram</span>
+          </button>
+          <a
+            class="share-menu-item"
+            id="smTwitter"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span
+              class="share-menu-icon-text share-menu-icon-bold"
+              aria-hidden="true"
+              >&#x1D54F;</span
+            ><span>Post on X</span>
+          </a>
+          <a
+            class="share-menu-item"
+            id="smLinkedIn"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="share-menu-icon-text" aria-hidden="true">in</span
+            ><span>LinkedIn</span>
+          </a>
+          <button
+            type="button"
+            class="share-menu-item share-menu-item--last"
+            id="smDownload"
+          >
+            <span aria-hidden="true">&#x2B07;&#xFE0F;</span
+            ><span>Download PNG</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="js/main.js"></script>
+  </body>
+</html>

@@ -26,3 +26,10 @@ yarn-error.log*
 
 # local runtime data
 data.db
+
+# build output
+/build
+
+# env files
+.env
+.env.*
