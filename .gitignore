@@ -33,3 +33,6 @@ data.db
 # env files
 .env
 .env.*
+
+# private artwork/media
+/public/images/
