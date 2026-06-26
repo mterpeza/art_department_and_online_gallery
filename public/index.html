@@ -5,13 +5,8 @@
     <link
       rel="icon"
       type="image/svg+xml"
-      href="%PUBLIC_URL%/favicon-dark.svg?v=20260626d"
-      media="(prefers-color-scheme: dark)"
-    />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="%PUBLIC_URL%/favicon-light.svg?v=20260626d"
+      id="favicon-svg"
+      href="%PUBLIC_URL%/favicon-light.svg"
     />
     <link
       rel="icon"
@@ -25,10 +20,20 @@
       sizes="512x512"
       href="%PUBLIC_URL%/orb512.png?v=20260626d"
     />
-    <link
-      rel="shortcut icon"
-      href="%PUBLIC_URL%/favicon-light.svg?v=20260626d"
-    />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon-light.svg" />
+    <script>
+      (function () {
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        function applyFavicon(e) {
+          var el = document.getElementById('favicon-svg');
+          if (el) el.href = e.matches ? '/favicon-dark.svg' : '/favicon-light.svg';
+          var sc = document.querySelector("link[rel='shortcut icon']");
+          if (sc) sc.href = e.matches ? '/favicon-dark.svg' : '/favicon-light.svg';
+        }
+        applyFavicon(mq);
+        mq.addEventListener('change', applyFavicon);
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="theme-color" content="#000000" />
