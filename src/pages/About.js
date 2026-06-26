@@ -213,12 +213,6 @@ export default function About({ theme = "dark" }) {
             editions. The intersection of craft and code is a recurring theme
             across both practices.
           </p>
-          <a
-            href={CONTACT_MAILTO}
-            className="inline-block rounded-md bg-[#ff4000] dark:bg-[#6cebe4] text-white dark:text-gray-900 font-semibold px-5 py-2.5 hover:brightness-95 transition"
-          >
-            Contact Me
-          </a>
         </div>
 
         <div className="lg:pl-4">

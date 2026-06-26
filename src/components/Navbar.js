@@ -174,40 +174,7 @@ export default function Navbar({ cart = [], theme, toggleTheme, breadcrumb }) {
           </div>
           {/* Desktop: cart + contact */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="relative">
-              <Link
-                className="transition-colors hover:text-gray-600 dark:hover:text-gray-300"
-                aria-label={`Cart with ${cartCount} items`}
-                to="/cart"
-                data-discover="true"
-                onClick={() => trackNavClick("/cart", "Cart")}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
-                </svg>
-                {cartCount > 0 && (
-                  <span
-                    className={`absolute -top-2 -right-2 text-xs font-bold rounded-full px-2 py-0.5 shadow-lg ${
-                      isDark
-                        ? "bg-[#6cebe4] text-gray-900"
-                        : "bg-[#ff4000] text-white"
-                    }`}
-                  >
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-            </div>
+            {/* Cart hidden until checkout is ready */}
             {/* Tablet: contact icon only */}
             <a
               className={`flex lg:hidden items-center justify-center px-3 py-1.5 rounded transition-colors ${
@@ -284,16 +251,7 @@ export default function Navbar({ cart = [], theme, toggleTheme, breadcrumb }) {
             >
               Store
             </Link>
-            <div className="mt-1 flex items-center gap-4 border-t border-gray-300 dark:border-gray-700 pt-3">
-              <Link
-                className="transition-colors hover:text-gray-600 dark:hover:text-gray-300"
-                aria-label={`Cart with ${cartCount} items`}
-                to="/cart"
-                onClick={() => trackNavClick("/cart", "Cart")}
-              >
-                Cart ({cartCount})
-              </Link>
-            </div>
+            {/* Cart hidden until checkout is ready */}
             <div className="pt-1">
               <a
                 className={`inline-flex w-full items-center justify-center px-3 py-2 rounded text-sm transition-colors ${

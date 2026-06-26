@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 
 async function doNativeShare(imageData) {
   const shareUrl = window.location.origin + "/hello-stickers";
-  const shareTitle = "Hello Sticker \u2014 Mike's Art Dept";
+  const shareTitle = "Hello Sticker \u2014 Mike Terpeza";
   const shareText =
-    "Check out this sticker from Mike's Art Dept! Come say hello \ud83d\udc4b";
+    "Check out this sticker from Mike Terpeza! Come say hello \ud83d\udc4b";
   try {
     const res = await fetch(imageData);
     const blob = await res.blob();
@@ -57,7 +57,7 @@ export default function StickerShareMenu({ imageData }) {
 
   const shareUrl = window.location.origin + "/hello-stickers";
   const tweetText = encodeURIComponent(
-    "Check out this sticker from Mike's Art Dept!",
+    "Check out this sticker from Mike Terpeza!",
   );
   const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
   const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;

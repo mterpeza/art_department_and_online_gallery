@@ -18,10 +18,11 @@ export default function LeaveYourMark() {
     : "/helloStickerTemplate.png";
   const canvasRef = useRef(null);
   const fluorescentPinkValue = "#ff4fd1";
+  const silverRoseValue = "silver-rose";
   const [inkColor, setInkColor] = useState("");
   const [dripsEnabled, setDripsEnabled] = useState(true);
   const [dripIntensity, setDripIntensity] = useState(5);
-  const [nibShape, setNibShape] = useState("slanted");
+  const [nibShape, setNibShape] = useState("round");
   const [nibSize, setNibSize] = useState(10);
   const [hasDrawingStarted, setHasDrawingStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -54,6 +55,7 @@ export default function LeaveYourMark() {
     velocity: 0,
     lastMoveAt: 0,
     lastDripAt: 0,
+    bleedDecay: 0,
   });
   const pendingServerConfirmationsRef = useRef(new Map());
   const lightboxTouchStartXRef = useRef(null);
@@ -62,9 +64,57 @@ export default function LeaveYourMark() {
     const canvas = canvasRef.current;
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    const x = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
     return { x, y };
+  };
+
+  // Silver metallic specs: uniform scatter across the full nib area.
+  // strokeAngle rotates only the streaks so they align with the pen direction.
+  const addSilverSparkles = (ctx, width, intensity = 1, strokeAngle = 0) => {
+    const sparkleCount = Math.max(8, Math.round((width / 1.3) * intensity));
+    ctx.save();
+    ctx.rotate(strokeAngle); // streaks align with stroke; dot positions are rotation-invariant
+    ctx.shadowBlur = 0;
+    ctx.lineCap = "round";
+    for (let index = 0; index < sparkleCount; index += 1) {
+      const roll = Math.random();
+      // 68% white, 22% grey blend, 10% dark shadow
+      const tier = roll < 0.68 ? "white" : roll < 0.9 ? "grey" : "dark";
+      // Uniform circular distribution — sqrt(random) gives even area coverage, no bunching
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * width * 0.92;
+      const px = Math.cos(a) * r;
+      const py = Math.sin(a) * r;
+      const radius = Math.max(0.5, width * (0.026 + Math.random() * 0.034));
+      if (tier === "white") {
+        ctx.fillStyle = "rgba(255, 255, 255, 1)";
+        ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+        ctx.globalAlpha = (0.72 + Math.random() * 0.28) * intensity;
+      } else if (tier === "grey") {
+        const g = Math.round(165 + Math.random() * 60);
+        ctx.fillStyle = `rgba(${g}, ${g}, ${g + 8}, 1)`;
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.globalAlpha = (0.6 + Math.random() * 0.35) * intensity;
+      } else {
+        ctx.fillStyle = "rgba(10, 10, 18, 0.88)";
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.globalAlpha = (0.55 + Math.random() * 0.35) * intensity;
+      }
+      ctx.beginPath();
+      ctx.arc(px, py, radius, 0, Math.PI * 2);
+      ctx.fill();
+      // Streaks on white only — horizontal in rotated space = along the stroke
+      if (tier === "white" && Math.random() < 0.5) {
+        const streakLen = width * (0.06 + Math.random() * 0.09);
+        ctx.lineWidth = Math.max(0.4, radius * 0.7);
+        ctx.beginPath();
+        ctx.moveTo(px - streakLen / 2, py);
+        ctx.lineTo(px + streakLen / 2, py);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
   };
 
   const addGelPenSparkles = (ctx, width, intensity = 1) => {
@@ -99,12 +149,83 @@ export default function LeaveYourMark() {
     ctx.restore();
   };
 
-  const stampNib = (ctx, x, y, width = nibSize) => {
-    const isMetallic = inkColor === "#bcc2cb" || inkColor === "#b8952a";
+  const stampNib = (ctx, x, y, width = nibSize, angle = null) => {
+    const isMetallic =
+      inkColor === "#bcc2cb" ||
+      inkColor === "#b8952a" ||
+      inkColor === silverRoseValue;
+    const isSilverRose = inkColor === silverRoseValue;
     ctx.save();
     ctx.translate(x, y);
-    ctx.fillStyle = inkColor;
     ctx.globalAlpha = 0.96;
+    if (isSilverRose) {
+      const edgeW = width * 0.07;
+
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      if (nibShape === "round") {
+        // 1. Silver first (source-over)
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "#bcc2cb";
+        ctx.beginPath();
+        ctx.arc(0, 0, width, 0, Math.PI * 2);
+        ctx.fill();
+        // Sparkles clipped to silver
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, width, 0, Math.PI * 2);
+        ctx.clip();
+        addSilverSparkles(ctx, width, 0.7, angle ?? 0);
+        ctx.restore();
+        // 2. Purple behind silver (destination-over)
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "rgba(125, 35, 200, 1)";
+        ctx.beginPath();
+        ctx.arc(0, 0, width + edgeW, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalCompositeOperation = "source-over";
+      } else {
+        ctx.save();
+        ctx.rotate((-34 * Math.PI) / 180);
+        // 1. Silver first
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "#bcc2cb";
+        ctx.beginPath();
+        ctx.ellipse(0, 0, width, width * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Sparkles
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, width, width * 0.3, 0, 0, Math.PI * 2);
+        ctx.clip();
+        addSilverSparkles(ctx, width, 0.7, 0);
+        ctx.restore();
+        // 2. Purple behind silver
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "rgba(125, 35, 200, 1)";
+        ctx.beginPath();
+        ctx.ellipse(
+          0,
+          0,
+          width + edgeW,
+          width * 0.3 + edgeW * 0.4,
+          0,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+        ctx.restore(); // restores rotation + compositeOperation
+      }
+      ctx.restore();
+      return;
+    }
+    ctx.fillStyle = inkColor;
     if (inkColor === fluorescentPinkValue) {
       ctx.shadowColor = "rgba(255, 255, 255, 0.28)";
       ctx.shadowBlur = Math.max(1.5, width * 0.18);
@@ -155,22 +276,125 @@ export default function LeaveYourMark() {
     ctx.restore();
   };
 
-  const drawSegment = (fromX, fromY, toX, toY) => {
+  const drawSegment = (fromX, fromY, toX, toY, velocity = 0) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const distance = Math.hypot(toX - fromX, toY - fromY);
+
+    // Silver-rose: two canvas path strokes (no stamping = no visible circle edges).
+    // Purple path slightly wider drawn first; silver path narrower drawn on top.
+    if (inkColor === silverRoseValue) {
+      const intensityMult = dripIntensity / 5;
+      // speedFactor with taper: use whichever is lower — instant or bleedDecay-derived.
+      // bleedDecay lingers high after a pause, keeping the outline thick for a beat
+      // before it tapers down as the cursor continues moving.
+      const speedFactor = Math.min(
+        Math.min(1, velocity / 0.35),
+        1 - drawStateRef.current.bleedDecay,
+      );
+      // edgeW: wide range — thick at slow/lingering, very thin at high speed
+      const edgeW = nibSize * Math.max(0.08, 0.48 - 0.4 * speedFactor);
+      // Bleed fully gated by toggle; zero when off
+      const bleedMult = dripsEnabled
+        ? Math.max(0, (1 - speedFactor) * intensityMult)
+        : 0;
+
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      const strokeAngle = Math.atan2(toY - fromY, toX - fromX);
+      const perpX = -Math.sin(strokeAngle);
+      const perpY = Math.cos(strokeAngle);
+
+      // ── 1. SILVER (source-over) drawn first ───────────────────────
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = "#bcc2cb";
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = nibSize * 2 + edgeW;
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+      ctx.lineWidth = nibSize * 2;
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+
+      // ── 2. FIBER STREAKS (source-over, on top of silver) ──────────
+      if (distance > 0) {
+        const fiberCount = 2 + Math.floor(Math.random() * 3);
+        ctx.lineCap = "butt";
+        ctx.shadowBlur = 0;
+        for (let f = 0; f < fiberCount; f += 1) {
+          const spread =
+            ((f + 0.5 + (Math.random() - 0.5) * 0.6) / fiberCount - 0.5) *
+            nibSize *
+            1.65;
+          ctx.globalAlpha = 0.09 + Math.random() * 0.13;
+          ctx.strokeStyle = "rgba(50, 55, 68, 1)";
+          ctx.lineWidth = Math.max(0.35, 0.3 + Math.random() * 0.65);
+          ctx.beginPath();
+          ctx.moveTo(fromX + perpX * spread, fromY + perpY * spread);
+          ctx.lineTo(toX + perpX * spread, toY + perpY * spread);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1.0;
+      }
+
+      // ── 3. SPARKLES (source-over, clipped to silver) ──────────────
+      const sparkStep = Math.max(2, nibSize * 0.5);
+      const sparkSteps = Math.max(1, Math.ceil(distance / sparkStep));
+      for (let i = 0; i <= sparkSteps; i += 1) {
+        const t = i / sparkSteps;
+        const x = fromX + (toX - fromX) * t;
+        const y = fromY + (toY - fromY) * t;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.beginPath();
+        ctx.arc(0, 0, nibSize, 0, Math.PI * 2);
+        ctx.clip();
+        addSilverSparkles(ctx, nibSize, 0.55, strokeAngle);
+        ctx.restore();
+      }
+
+      // ── 4. PURPLE + BLEED (destination-over — paints BEHIND existing pixels) ─
+      // lineWidth grows with bleedMult so heavy bleed = more solid purple coverage.
+      // shadowBlur is kept tight — just soft enough to feather the outer edge.
+      ctx.globalCompositeOperation = "destination-over";
+      ctx.globalAlpha = 1.0;
+      ctx.strokeStyle = "rgba(125, 35, 200, 1)";
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = nibSize * 2 + edgeW * 2 + nibSize * bleedMult * 0.3;
+      ctx.shadowColor = "rgba(125, 35, 200, 1)";
+      ctx.shadowBlur = nibSize * bleedMult * 0.28;
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalCompositeOperation = "source-over";
+      return;
+    }
+
     const stepSize =
       nibShape === "round"
         ? Math.max(0.6, nibSize * 0.22)
         : Math.max(0.4, nibSize * 0.1);
+    const angle = Math.atan2(toY - fromY, toX - fromX);
     const steps = Math.max(1, Math.ceil(distance / stepSize));
     for (let i = 0; i <= steps; i += 1) {
       const t = i / steps;
       const x = fromX + (toX - fromX) * t;
       const y = fromY + (toY - fromY) * t;
-      stampNib(ctx, x, y);
+      stampNib(ctx, x, y, nibSize, angle);
     }
   };
 
@@ -197,8 +421,8 @@ export default function LeaveYourMark() {
       const xOffset = (Math.random() - 0.5) * 4;
       const dripWidth = 0.9 + Math.random() * 2.5;
       ctx.save();
-      ctx.strokeStyle = inkColor;
-      ctx.fillStyle = inkColor;
+      ctx.strokeStyle = inkColor === silverRoseValue ? "#bcc2cb" : inkColor;
+      ctx.fillStyle = inkColor === silverRoseValue ? "#bcc2cb" : inkColor;
       ctx.globalAlpha = 0.85;
       if (inkColor === fluorescentPinkValue) {
         ctx.shadowColor = "rgba(255, 255, 255, 0.26)";
@@ -268,12 +492,10 @@ export default function LeaveYourMark() {
     state.velocity = 0;
     state.lastMoveAt = Date.now();
     state.lastDripAt = 0;
+    state.bleedDecay = 0;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
-    if (canvas && event.pointerId !== undefined) {
-      canvas.setPointerCapture?.(event.pointerId);
-    }
-    if (ctx) {
+    if (canvas && ctx) {
       stampNib(ctx, point.x, point.y);
       if (!hasDrawingStarted) trackStickerDrawStart();
       setHasDrawingStarted(true);
@@ -290,21 +512,40 @@ export default function LeaveYourMark() {
     const smoothX = state.smoothX + (point.x - state.smoothX) * 0.4;
     const smoothY = state.smoothY + (point.y - state.smoothY) * 0.4;
     const distance = Math.hypot(smoothX - state.lastX, smoothY - state.lastY);
+    if (distance < 0.5) return; // skip micro-movements to avoid bleed stacking
     const deltaMs = Math.max(1, now - state.lastMoveAt);
-    drawSegment(state.lastX, state.lastY, smoothX, smoothY);
+    drawSegment(state.lastX, state.lastY, smoothX, smoothY, state.velocity);
     state.lastX = smoothX;
     state.lastY = smoothY;
     state.smoothX = smoothX;
     state.smoothY = smoothY;
     state.velocity = distance / deltaMs;
     state.lastMoveAt = now;
+    // Asymmetric bleedDecay: snaps to thick instantly on slow/pause,
+    // but tapers slowly back to thin when cursor speeds up again.
+    const instSF = Math.min(1, state.velocity / 0.35);
+    const bleedTarget = 1 - instSF;
+    const lerpRate = bleedTarget >= state.bleedDecay ? 0.72 : 0.05;
+    state.bleedDecay =
+      state.bleedDecay + (bleedTarget - state.bleedDecay) * lerpRate;
   };
 
-  const stopDrawing = (event) => {
+  const stopDrawing = () => {
     drawStateRef.current.isDrawing = false;
-    const canvas = canvasRef.current;
-    if (canvas && event?.pointerId !== undefined) {
-      canvas.releasePointerCapture?.(event.pointerId);
+  };
+
+  // When the pointer leaves the sticker area, keep isDrawing=true so drawing
+  // resumes on re-entry without requiring a re-click. Just snap lastX/lastY
+  // to the clamped edge position so re-entry strokes start from the edge.
+  const pauseDrawingAtEdge = (event) => {
+    const state = drawStateRef.current;
+    if (!state.isDrawing) return;
+    const point = getCanvasPoint(event);
+    if (point) {
+      state.lastX = point.x;
+      state.lastY = point.y;
+      state.smoothX = point.x;
+      state.smoothY = point.y;
     }
   };
 
@@ -313,7 +554,11 @@ export default function LeaveYourMark() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    // Reset to identity so clearRect uses buffer pixel coords, not scaled coords
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
     setHasDrawingStarted(false);
     setSubmittedImageData(null);
   };
@@ -582,15 +827,22 @@ export default function LeaveYourMark() {
         );
       }
     };
-    // Only resize on orientationchange/resize, never clear drawing on scroll
+    // Resize on window resize AND whenever the parent container resizes
+    // (e.g. when templateAspect loads and changes the container's aspect-ratio)
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("orientationchange", resizeCanvas);
     window.visualViewport?.addEventListener("resize", resizeCanvas);
+
+    const parentEl = canvas.parentElement;
+    const ro = parentEl ? new ResizeObserver(resizeCanvas) : null;
+    if (ro && parentEl) ro.observe(parentEl);
+
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("orientationchange", resizeCanvas);
       window.visualViewport?.removeEventListener("resize", resizeCanvas);
+      ro?.disconnect();
     };
   }, []);
 
@@ -599,6 +851,7 @@ export default function LeaveYourMark() {
       const state = drawStateRef.current;
       if (!state.isDrawing) return;
       if (!dripsEnabled) return;
+      if (inkColor === silverRoseValue) return; // silver-rose uses bleed, not drips
       const now = Date.now();
       const sinceLastDrip = now - state.lastDripAt;
       // intensity 1=slow (~500ms), 5=default (~95ms), 10=fast (~15ms)
@@ -646,6 +899,7 @@ export default function LeaveYourMark() {
     { label: "Yellow", value: "#facc15" },
     { label: "Silver", value: "#bcc2cb" },
     { label: "Gold", value: "#b8952a" },
+    { label: "Silver Outliner Pen - Purple", value: silverRoseValue },
     { label: "Pink Gel", value: fluorescentPinkValue },
   ];
 
@@ -655,6 +909,7 @@ export default function LeaveYourMark() {
       value === "#bcc2cb" ||
       value === "#facc15" ||
       value === "#b8952a" ||
+      value === silverRoseValue ||
       value === fluorescentPinkValue
     ) {
       return "#111111";
@@ -684,9 +939,9 @@ export default function LeaveYourMark() {
   const shareSticker = async () => {
     if (!submittedImageData) return;
     const shareUrl = window.location.origin + "/hello-stickers";
-    const shareTitle = "My Hello Sticker — Mike's Art Dept";
+    const shareTitle = "My Hello Sticker — Mike Terpeza";
     const shareText =
-      "I just left my mark at Mike's Art Dept! Come say hello 👋";
+      "I just left my mark on Mike Terpeza's site! Come say hello 👋";
     try {
       const res = await fetch(submittedImageData);
       const blob = await res.blob();
@@ -786,7 +1041,9 @@ export default function LeaveYourMark() {
           <p className="text-xs uppercase tracking-[0.16em] text-[#6cebe4] font-semibold mb-3">
             Check in
           </p>
-          <h2 className="text-2xl md:text-3xl font-bold">Say HELLO!</h2>
+          <h2 className="text-2xl md:text-3xl font-bold">
+            Don't be a stranger, say HELLO!
+          </h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 mt-3">
             Draw directly on the sticker. Use the settings to adjust your style.
           </p>
@@ -822,7 +1079,10 @@ export default function LeaveYourMark() {
                 onChange={(event) => setInkColor(event.target.value)}
                 className="w-full flex-1 min-w-0 rounded-md border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm"
                 style={{
-                  backgroundColor: inkColor || "#ffffff",
+                  background:
+                    inkColor === silverRoseValue
+                      ? "linear-gradient(135deg, #bcc2cb 55%, #6b1ab3 55%)"
+                      : inkColor || "#ffffff",
                   color: getInkTextColor(inkColor),
                 }}
                 aria-label="Select ink color"
@@ -835,7 +1095,8 @@ export default function LeaveYourMark() {
                     key={ink.value}
                     value={ink.value}
                     style={{
-                      backgroundColor: ink.value,
+                      backgroundColor:
+                        ink.value === silverRoseValue ? "#bcc2cb" : ink.value,
                       color: getInkTextColor(ink.value),
                     }}
                   >
@@ -848,7 +1109,7 @@ export default function LeaveYourMark() {
             <div className="w-full sm:w-auto lg:flex-1 lg:min-w-0 lg:min-h-[56px] flex items-center justify-between gap-2 rounded-md border border-gray-300 dark:border-gray-600 px-2.5 py-1.5">
               <div className="w-[124px] flex items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 p-1.5">
                 <span className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-600 dark:text-gray-300">
-                  Drips
+                  {inkColor === silverRoseValue ? "Bleed" : "Drips"}
                 </span>
                 <button
                   type="button"
@@ -967,7 +1228,7 @@ export default function LeaveYourMark() {
                 onPointerDown={startDrawing}
                 onPointerMove={continueDrawing}
                 onPointerUp={stopDrawing}
-                onPointerLeave={stopDrawing}
+                onPointerLeave={pauseDrawingAtEdge}
                 onPointerCancel={stopDrawing}
                 className="absolute inset-0 w-full h-full touch-none cursor-crosshair"
                 onContextMenu={(event) => event.preventDefault()}

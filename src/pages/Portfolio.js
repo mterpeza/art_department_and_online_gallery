@@ -712,6 +712,13 @@ const collaborationGroups = [
     thumb:
       "/images/portfolio/collaboration/ordinary%20pals/dudes/Char%2003.jpeg",
     images: [
+      "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_3077.jpeg",
+      "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_3078.jpeg",
+      "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_3079.jpeg",
+      "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_3080.jpeg",
+      "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_3081.jpeg",
+      "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_9321.jpeg",
+      "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_9375.jpeg",
       "/images/portfolio/collaboration/ordinary%20pals/dudes/Char%2001.jpeg",
       "/images/portfolio/collaboration/ordinary%20pals/dudes/Char%2002.jpeg",
       "/images/portfolio/collaboration/ordinary%20pals/dudes/Char%2003.jpeg",
@@ -731,7 +738,6 @@ const collaborationGroups = [
       "/images/portfolio/collaboration/ordinary%20pals/dudes/Small%2007.jpeg",
       "/images/portfolio/collaboration/ordinary%20pals/dudes/_SURE!.jpeg",
       "/images/portfolio/collaboration/ordinary%20pals/dudes/_Stevies.jpeg",
-      "/images/portfolio/collaboration/ordinary%20pals/dudes/art_show.jpeg",
       "/images/portfolio/collaboration/ordinary%20pals/dudes/art_show_2.jpg",
       "/images/portfolio/collaboration/ordinary%20pals/dudes/IMG_0033.jpg",
     ],
@@ -977,7 +983,9 @@ const rabbitHoleProjects = [
   },
   {
     id: "concert-tickets-events",
-    label: "Concert tickets",
+    label: "Concert tickets & local show souvenirs",
+    blurb:
+      "A collection of concert tickets and local show souvenirs from growing up. I am not the designer of any content, flyers, or photography shown — with the exception of the Franklin Legion Hall flyer.",
     thumb: "/images/portfolio/rabbitHole/ticketStubs/IMG_1485.jpeg",
     images: rabbitHoleImageGroups.ticketStubs,
   },
@@ -1335,7 +1343,6 @@ const otherPortfolioSections = [
     comingSoon: false,
     images: [],
   },
-  { id: "furniture", label: "Furniture", comingSoon: true, images: [] },
   {
     id: "lettering-calligraphy",
     label: "Lettering / Calligraphy",
@@ -1343,6 +1350,7 @@ const otherPortfolioSections = [
     images: [],
   },
   { id: "collage-work", label: "Collage", comingSoon: true, images: [] },
+  { id: "furniture", label: "Furniture", comingSoon: true, images: [] },
   { id: "junk-drawer", label: "Rabbit hole", comingSoon: false, images: [] },
 ];
 

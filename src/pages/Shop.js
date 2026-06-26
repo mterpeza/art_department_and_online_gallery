@@ -389,19 +389,14 @@ function ProductGrid({
                 />
               </button>
             )}
-            {product.showSoldOutBanner && (
-              <div className="pointer-events-none absolute -right-12 top-3 w-44 rotate-[36deg] bg-red-700/85 text-white text-xs font-black uppercase tracking-[0.14em] text-center py-1.5">
-                Sold Out
-              </div>
-            )}
           </div>
           <div
-            className="px-4 pb-4 pt-0 border-t border-gray-200 dark:border-gray-700"
+            className="px-4 pb-5 pt-0 border-t border-gray-200 dark:border-gray-700"
             style={{ borderTopWidth: "0.125px" }}
           >
-            <h3 className="mt-2.5 font-semibold">{product.name}</h3>
+            <h3 className="mt-3 font-semibold">{product.name}</h3>
             {product.year && (
-              <p className="mt-1">
+              <p className="mt-2">
                 <span className="inline-flex items-center rounded-full border border-[#6cebe4]/50 bg-[#6cebe4]/10 px-2.5 py-0.5 text-[11px] font-semibold tracking-[0.14em] text-[#256c68] dark:text-[#8df5ef]">
                   {product.year}
                 </span>
@@ -409,34 +404,34 @@ function ProductGrid({
             )}
             {product.orderUrl ? (
               <>
-                <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1 font-semibold">
+                <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-2 font-semibold">
                   Vinyl · outdoor quality
                 </p>
                 <a
                   href={product.orderUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white/95 dark:bg-gray-900/80 px-3.5 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm transition-all hover:-translate-y-[1px] hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow"
+                  className="mt-3 inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white/95 dark:bg-gray-900/80 px-3.5 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm transition-all hover:-translate-y-[1px] hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow"
                 >
                   Order
                 </a>
               </>
             ) : product.comingSoon ? (
-              <p className="text-sm text-amber-700 dark:text-amber-400 mt-1 font-semibold">
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-2 font-semibold">
                 Print to order coming soon
               </p>
             ) : product.soldOut ? (
-              <p className="text-sm text-red-700 dark:text-red-400 mt-1 font-semibold">
-                {product.showSoldOutBanner ? "Sold Out" : "Sold"}
+              <p className="text-sm text-red-700 dark:text-red-400 mt-2 font-semibold">
+                {product.showSoldOutBanner ? "Sold out" : "Sold"}
               </p>
             ) : (
               <>
-                <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-1 font-semibold">
+                <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-2 font-semibold">
                   Contact for price
                 </p>
                 <a
                   href={CONTACT_MAILTO}
-                  className="mt-2 inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white/95 dark:bg-gray-900/80 px-3.5 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm transition-all hover:-translate-y-[1px] hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow"
+                  className="mt-3 inline-flex items-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white/95 dark:bg-gray-900/80 px-3.5 py-1.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm transition-all hover:-translate-y-[1px] hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow"
                   onClick={() => trackContactClick("shop_card")}
                 >
                   Contact
@@ -707,10 +702,10 @@ export default function Shop() {
         <p className="text-xs uppercase tracking-[0.18em] text-[#6cebe4] font-semibold mb-2">
           Store
         </p>
-        <h1 className="text-3xl font-bold mb-2">Online Store</h1>
+        <h1 className="text-3xl font-bold mb-2">My Online Store</h1>
         <p className="text-gray-600 dark:text-gray-300">
-          Welcome to the Art Department Store. Please reach out if you're
-          interested in purchasing any artwork or have any questions.
+          Welcome! Please contact Mike if you're interested in purchasing any
+          artwork or have any questions.
         </p>
       </header>
 
