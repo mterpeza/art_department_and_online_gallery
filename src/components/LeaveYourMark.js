@@ -72,41 +72,46 @@ export default function LeaveYourMark() {
   // Silver metallic specs: uniform scatter across the full nib area.
   // strokeAngle rotates only the streaks so they align with the pen direction.
   const addSilverSparkles = (ctx, width, intensity = 1, strokeAngle = 0) => {
-    const sparkleCount = Math.max(8, Math.round((width / 1.3) * intensity));
+    // Area-based count keeps sparkle density consistent across all nib sizes.
+    // Small nib (5): ~12 specs; large nib (22): ~90 specs — same visual density.
+    const sparkleCount = Math.min(
+      90,
+      Math.max(12, Math.round(width * width * 0.48 * intensity)),
+    );
     ctx.save();
-    ctx.rotate(strokeAngle); // streaks align with stroke; dot positions are rotation-invariant
+    ctx.rotate(strokeAngle);
     ctx.shadowBlur = 0;
     ctx.lineCap = "round";
     for (let index = 0; index < sparkleCount; index += 1) {
       const roll = Math.random();
-      // 68% white, 22% grey blend, 10% dark shadow
-      const tier = roll < 0.68 ? "white" : roll < 0.9 ? "grey" : "dark";
-      // Uniform circular distribution — sqrt(random) gives even area coverage, no bunching
+      // 74% white (most), 12% grey, 14% dark — more contrast, fewer mid tones
+      const tier = roll < 0.74 ? "white" : roll < 0.86 ? "grey" : "dark";
       const a = Math.random() * Math.PI * 2;
       const r = Math.sqrt(Math.random()) * width * 0.92;
       const px = Math.cos(a) * r;
       const py = Math.sin(a) * r;
-      const radius = Math.max(0.5, width * (0.026 + Math.random() * 0.034));
+      // Smaller radius multiplier keeps specs fine at large nibs (same feel as small nib)
+      const radius = Math.max(0.5, width * (0.015 + Math.random() * 0.022));
       if (tier === "white") {
         ctx.fillStyle = "rgba(255, 255, 255, 1)";
         ctx.strokeStyle = "rgba(255, 255, 255, 1)";
-        ctx.globalAlpha = (0.72 + Math.random() * 0.28) * intensity;
+        ctx.globalAlpha = (0.78 + Math.random() * 0.22) * intensity;
       } else if (tier === "grey") {
-        const g = Math.round(165 + Math.random() * 60);
+        const g = Math.round(155 + Math.random() * 65);
         ctx.fillStyle = `rgba(${g}, ${g}, ${g + 8}, 1)`;
         ctx.strokeStyle = ctx.fillStyle;
         ctx.globalAlpha = (0.6 + Math.random() * 0.35) * intensity;
       } else {
-        ctx.fillStyle = "rgba(10, 10, 18, 0.88)";
+        ctx.fillStyle = "rgba(8, 8, 15, 0.92)";
         ctx.strokeStyle = ctx.fillStyle;
-        ctx.globalAlpha = (0.55 + Math.random() * 0.35) * intensity;
+        ctx.globalAlpha = (0.65 + Math.random() * 0.3) * intensity;
       }
       ctx.beginPath();
       ctx.arc(px, py, radius, 0, Math.PI * 2);
       ctx.fill();
-      // Streaks on white only — horizontal in rotated space = along the stroke
-      if (tier === "white" && Math.random() < 0.5) {
-        const streakLen = width * (0.06 + Math.random() * 0.09);
+      // Streaks on white — more frequent
+      if (tier === "white" && Math.random() < 0.62) {
+        const streakLen = width * (0.04 + Math.random() * 0.07);
         ctx.lineWidth = Math.max(0.4, radius * 0.7);
         ctx.beginPath();
         ctx.moveTo(px - streakLen / 2, py);
@@ -159,7 +164,9 @@ export default function LeaveYourMark() {
     ctx.translate(x, y);
     ctx.globalAlpha = 0.96;
     if (isSilverRose) {
-      const edgeW = width * 0.07;
+      // edgeW scales with flow so at Flow=0 the purple ring is nearly invisible
+      const flowFactor = dripIntensity / 10;
+      const edgeW = width * Math.max(0.01, 0.02 + 0.05 * flowFactor);
 
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
@@ -178,15 +185,21 @@ export default function LeaveYourMark() {
         ctx.beginPath();
         ctx.arc(0, 0, width, 0, Math.PI * 2);
         ctx.clip();
-        addSilverSparkles(ctx, width, 0.7, angle ?? 0);
+        addSilverSparkles(ctx, width, 0.88, angle ?? 0);
         ctx.restore();
         // 2. Purple behind silver (destination-over)
+        // Flow=0 → soft glow only; Flow=10 → hard edge ring
+        const glowAmtStamp = 1 - flowFactor;
         ctx.globalCompositeOperation = "destination-over";
-        ctx.globalAlpha = 1.0;
-        ctx.fillStyle = "rgba(125, 35, 200, 1)";
+        ctx.globalAlpha = 0.42 + 0.58 * flowFactor;
+        ctx.fillStyle = "rgba(195, 85, 168, 1)";
+        ctx.shadowColor = "rgba(195, 85, 168, 1)";
+        ctx.shadowBlur = Math.max(2.5, width * glowAmtStamp * 0.52);
         ctx.beginPath();
         ctx.arc(0, 0, width + edgeW, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1.0;
         ctx.globalCompositeOperation = "source-over";
       } else {
         ctx.save();
@@ -203,12 +216,16 @@ export default function LeaveYourMark() {
         ctx.beginPath();
         ctx.ellipse(0, 0, width, width * 0.3, 0, 0, Math.PI * 2);
         ctx.clip();
-        addSilverSparkles(ctx, width, 0.7, 0);
+        addSilverSparkles(ctx, width, 0.88, 0);
         ctx.restore();
         // 2. Purple behind silver
+        // Flow=0 → soft glow only; Flow=10 → hard edge ring
+        const glowAmtStamp = 1 - flowFactor;
         ctx.globalCompositeOperation = "destination-over";
-        ctx.globalAlpha = 1.0;
-        ctx.fillStyle = "rgba(125, 35, 200, 1)";
+        ctx.globalAlpha = 0.42 + 0.58 * flowFactor;
+        ctx.fillStyle = "rgba(195, 85, 168, 1)";
+        ctx.shadowColor = "rgba(195, 85, 168, 1)";
+        ctx.shadowBlur = Math.max(2.5, width * glowAmtStamp * 0.52);
         ctx.beginPath();
         ctx.ellipse(
           0,
@@ -220,7 +237,8 @@ export default function LeaveYourMark() {
           Math.PI * 2,
         );
         ctx.fill();
-        ctx.restore(); // restores rotation + compositeOperation
+        ctx.shadowBlur = 0;
+        ctx.restore(); // restores rotation + compositeOperation (incl. globalAlpha)
       }
       ctx.restore();
       return;
@@ -286,7 +304,10 @@ export default function LeaveYourMark() {
     // Silver-rose: two canvas path strokes (no stamping = no visible circle edges).
     // Purple path slightly wider drawn first; silver path narrower drawn on top.
     if (inkColor === silverRoseValue) {
-      const intensityMult = dripIntensity / 5;
+      const intensityMult = dripIntensity / 5; // 0–2 range (slider 0–10)
+      // edgeW scales with both flow and speed:
+      // Flow=0 → barely-there whisper; Flow=10 slow → current max
+      const flowFactor = dripIntensity / 10;
       // speedFactor with taper: use whichever is lower — instant or bleedDecay-derived.
       // bleedDecay lingers high after a pause, keeping the outline thick for a beat
       // before it tapers down as the cursor continues moving.
@@ -294,8 +315,13 @@ export default function LeaveYourMark() {
         Math.min(1, velocity / 0.35),
         1 - drawStateRef.current.bleedDecay,
       );
-      // edgeW: wide range — thick at slow/lingering, very thin at high speed
-      const edgeW = nibSize * Math.max(0.08, 0.48 - 0.4 * speedFactor);
+      // edgeW: scales with flow AND speed — whisper at Flow=0, full at Flow=10 slow
+      const edgeW =
+        nibSize *
+        Math.max(
+          0.03,
+          (0.06 + 0.42 * flowFactor) * Math.max(0.28, 1 - 0.68 * speedFactor),
+        );
       // Bleed fully gated by toggle; zero when off
       const bleedMult = dripsEnabled
         ? Math.max(0, (1 - speedFactor) * intensityMult)
@@ -360,26 +386,33 @@ export default function LeaveYourMark() {
         ctx.beginPath();
         ctx.arc(0, 0, nibSize, 0, Math.PI * 2);
         ctx.clip();
-        addSilverSparkles(ctx, nibSize, 0.55, strokeAngle);
+        addSilverSparkles(ctx, nibSize, 0.78, strokeAngle);
         ctx.restore();
       }
 
       // ── 4. PURPLE + BLEED (destination-over — paints BEHIND existing pixels) ─
-      // lineWidth grows with bleedMult so heavy bleed = more solid purple coverage.
-      // shadowBlur is kept tight — just soft enough to feather the outer edge.
+      // Flow=0 → soft glow halo only (wide shadowBlur, faint alpha, no hard edge).
+      // Flow=10 → crisp hard edge + bleed-driven shadow — current full behavior.
+      const glowAmt = 1 - flowFactor;
       ctx.globalCompositeOperation = "destination-over";
-      ctx.globalAlpha = 1.0;
-      ctx.strokeStyle = "rgba(125, 35, 200, 1)";
+      ctx.globalAlpha = 0.42 + 0.58 * flowFactor; // more violet at Flow=0, full at Flow=10
+      ctx.strokeStyle = "rgba(195, 85, 168, 1)";
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.lineWidth = nibSize * 2 + edgeW * 2 + nibSize * bleedMult * 0.3;
-      ctx.shadowColor = "rgba(125, 35, 200, 1)";
-      ctx.shadowBlur = nibSize * bleedMult * 0.28;
+      ctx.shadowColor = "rgba(195, 85, 168, 1)";
+      // Flow=0: compact dense glow; Flow=10: tight bleed-driven shadow
+      // Math.max floor ensures glow is visible even at the smallest nib size
+      ctx.shadowBlur = Math.max(
+        2.5,
+        nibSize * (glowAmt * 0.52 + bleedMult * 0.28),
+      );
       ctx.beginPath();
       ctx.moveTo(fromX, fromY);
       ctx.lineTo(toX, toY);
       ctx.stroke();
       ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1.0;
       ctx.globalCompositeOperation = "source-over";
       return;
     }
@@ -1081,7 +1114,7 @@ export default function LeaveYourMark() {
                 style={{
                   background:
                     inkColor === silverRoseValue
-                      ? "linear-gradient(135deg, #bcc2cb 55%, #6b1ab3 55%)"
+                      ? "linear-gradient(135deg, #bcc2cb 55%, #c355a8 55%)"
                       : inkColor || "#ffffff",
                   color: getInkTextColor(inkColor),
                 }}
@@ -1129,7 +1162,7 @@ export default function LeaveYourMark() {
                 </span>
                 <input
                   type="range"
-                  min="1"
+                  min="0"
                   max="10"
                   step="1"
                   value={dripIntensity}
