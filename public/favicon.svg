@@ -1,18 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="5" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-  <circle class="dot" cx="50" cy="50" r="40"/>
+  <circle cx="50" cy="50" r="40" fill="#ff4000"/>
   <style>
-    .dot { fill: #ff4000; }
     @media (prefers-color-scheme: dark) {
-      .dot { fill: #6cebe4; filter: url(#glow); }
+      circle { fill: #6cebe4; }
     }
   </style>
 </svg>
