@@ -27,6 +27,7 @@ export default function LeaveYourMark() {
   const [hasDrawingStarted, setHasDrawingStarted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [allowPrint, setAllowPrint] = useState(false);
   const [submittedImageData, setSubmittedImageData] = useState(null);
   const [templateAspect, setTemplateAspect] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -728,6 +729,7 @@ export default function LeaveYourMark() {
         body: JSON.stringify({
           username: "Anonymous",
           imageData: pngData,
+          allowPrint,
         }),
       });
       if (!response.ok) {
@@ -1292,6 +1294,17 @@ export default function LeaveYourMark() {
                   Clear
                 </button>
               </div>
+              <label className="inline-flex items-start gap-2 cursor-pointer mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={allowPrint}
+                  onChange={(e) => setAllowPrint(e.target.checked)}
+                  className="mt-0.5 w-3.5 h-3.5 rounded accent-[#6cebe4] flex-shrink-0"
+                />
+                <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
+                  Allow others to order a weatherproof print of this sticker
+                </span>
+              </label>
               {submittedImageData && (
                 <button
                   type="button"

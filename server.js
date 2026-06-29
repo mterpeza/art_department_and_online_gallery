@@ -174,7 +174,7 @@ app.get("/api/checkin-stickers", async (request, response) => {
             ? { ":a": "approved", ":p": "pending" }
             : { ":a": "approved" },
           ProjectionExpression:
-            "id, username, imageData, createdAt, moderationStatus",
+            "id, username, imageData, createdAt, moderationStatus, allowPrint",
         }),
       );
 
@@ -200,7 +200,7 @@ app.get("/api/checkin-stickers", async (request, response) => {
 });
 
 app.post("/api/checkin-stickers", async (request, response) => {
-  const { username, imageData } = request.body || {};
+  const { username, imageData, allowPrint } = request.body || {};
   if (!imageData || typeof imageData !== "string") {
     return response.status(400).json({ error: "Missing image data" });
   }
@@ -218,6 +218,7 @@ app.post("/api/checkin-stickers", async (request, response) => {
           imageData,
           createdAt,
           moderationStatus: "approved",
+          allowPrint: allowPrint === true,
         },
       }),
     );
@@ -280,6 +281,81 @@ app.delete("/api/admin/checkin-stickers", async (request, response) => {
     return response.json({ success: true, deletedCount: items.length });
   } catch (_error) {
     return response.status(500).json({ error: "Database error" });
+  }
+});
+
+// ── Sticker Mule Integration ─────────────────────────────────────────────
+// Set STICKERMULE_API_TOKEN and STICKERMULE_STORE_URL env vars once your
+// Sticker Mule account and API key are ready.
+const SM_TOKEN = process.env.STICKERMULE_API_TOKEN || "";
+const SM_STORE_URL = process.env.STICKERMULE_STORE_URL || "";
+const SM_BASE = "https://www.stickermule.com/api/v1";
+
+async function smRequest(path, options = {}) {
+  const res = await fetch(`${SM_BASE}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${SM_TOKEN}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`SM API ${res.status}: ${text}`);
+  return JSON.parse(text);
+}
+
+// GET /api/stickermule/config — frontend checks this to know if ordering is live
+app.get("/api/stickermule/config", (_request, response) => {
+  response.json({ active: Boolean(SM_TOKEN), storeUrl: SM_STORE_URL });
+});
+
+// POST /api/stickermule/proof
+// Body: { imageData, quantity, stickerId }
+// Uploads artwork to S3 then requests a Sticker Mule order proof.
+// Returns proof details so the user can confirm before placing the order.
+app.post("/api/stickermule/proof", async (request, response) => {
+  if (!SM_TOKEN) {
+    return response
+      .status(503)
+      .json({
+        error: "Sticker Mule ordering not active yet — check back soon!",
+      });
+  }
+  const { imageData, quantity = 10, stickerId } = request.body || {};
+  if (!imageData) {
+    return response.status(400).json({ error: "imageData required." });
+  }
+  try {
+    // 1. Decode base64 PNG and upload to S3 for a public URL
+    const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+    const s3 = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
+    const base64 = imageData.replace(/^data:image\/\w+;base64,/, "");
+    const imgBuffer = Buffer.from(base64, "base64");
+    const s3Key = `proof-requests/${stickerId || crypto.randomUUID()}.png`;
+    const s3Bucket = process.env.S3_BUCKET || "artdept-portfolio-test";
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: s3Bucket,
+        Key: s3Key,
+        Body: imgBuffer,
+        ContentType: "image/png",
+      }),
+    );
+    const artworkUrl = `https://${s3Bucket}.s3.amazonaws.com/${s3Key}`;
+
+    // 2. Submit to Sticker Mule API
+    const proof = await smRequest("/orders", {
+      method: "POST",
+      body: JSON.stringify({
+        line_items: [{ quantity, artwork_url: artworkUrl }],
+      }),
+    });
+    return response.json({ success: true, proof, artworkUrl });
+  } catch (err) {
+    console.error("[SM] Proof error:", err.message);
+    return response.status(502).json({ error: err.message });
   }
 });
 

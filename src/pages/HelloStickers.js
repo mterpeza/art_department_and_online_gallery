@@ -10,6 +10,7 @@ export default function HelloStickers() {
   const [galleryPageSize, setGalleryPageSize] = useState(30);
   const [galleryPage, setGalleryPage] = useState(1);
   const [activeStickerIndex, setActiveStickerIndex] = useState(null);
+  const [smConfig, setSmConfig] = useState({ active: false, storeUrl: "" });
   const touchStartXRef = useRef(null);
   const swipeThreshold = 40;
   useEffect(() => {
@@ -29,6 +30,15 @@ export default function HelloStickers() {
       setLoading(false);
     }
     fetchAllStickers();
+  }, []);
+
+  useEffect(() => {
+    fetch(apiUrl("/api/stickermule/config"))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d) setSmConfig(d);
+      })
+      .catch(() => {});
   }, []);
 
   const formatSavedAt = (value) => {
@@ -272,6 +282,21 @@ export default function HelloStickers() {
                 {index + 1} / {stickers.length}
                 {s?.createdAt ? ` • ${formatSavedAt(s.createdAt)}` : ""}
               </p>
+              {s?.allowPrint &&
+                (smConfig.active && smConfig.storeUrl ? (
+                  <a
+                    href={smConfig.storeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#6cebe4]/60 bg-[#6cebe4]/10 px-3 py-1.5 text-xs font-semibold text-[#6cebe4] hover:bg-[#6cebe4]/20 transition"
+                  >
+                    🖨 Order a print
+                  </a>
+                ) : (
+                  <span className="text-[11px] text-white/40 italic">
+                    Print ordering coming soon
+                  </span>
+                ))}
               <StickerShareMenu imageData={s?.imageData} />
             </div>
           );
