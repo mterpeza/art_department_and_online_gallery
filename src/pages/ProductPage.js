@@ -131,10 +131,17 @@ export default function ProductPage() {
             ) : null}
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-                Interested in this piece? Reach out directly for pricing,
-                availability, and shipping information.
-              </p>
+              {product.medium === "Vinyl sticker" ? (
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                  Order your stickers now — printed, shipped, and fulfilled
+                  through Sticker Mule. Die-cut vinyl, built to last.
+                </p>
+              ) : (
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                  Interested in this piece? Reach out directly for pricing,
+                  availability, and shipping information.
+                </p>
+              )}
 
               {!product.soldOut && (
                 <a
@@ -142,7 +149,9 @@ export default function ProductPage() {
                   className="inline-flex items-center justify-center w-full px-6 py-3 rounded-lg bg-[#ff4000] dark:bg-[#6cebe4] text-white dark:text-gray-900 font-semibold hover:brightness-95 transition text-sm"
                   onClick={() => trackContactClick("product_page")}
                 >
-                  Contact Me About This Piece
+                  {product.medium === "Vinyl sticker"
+                    ? "Order Now"
+                    : "Contact Me About This Piece"}
                 </a>
               )}
             </div>

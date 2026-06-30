@@ -230,12 +230,44 @@ const collaborationProducts = [
 
 const stickerProducts = [
   {
-    id: "lurker-sticker",
-    name: "Lurker",
-    image: "/images/Store/stickers/sticker_link.png",
-    galleryImages: ["/images/Store/stickers/sticker_link.png"],
+    id: "party-mode-sticker",
+    name: "Party Mode",
+    image: "/images/portfolio/mspaint/IMG_2821.JPG",
+    galleryImages: ["/images/portfolio/mspaint/IMG_2821.JPG"],
     comingSoon: true,
     detailPage: true,
+    imageStyle: { objectFit: "contain", backgroundColor: "#fff" },
+  },
+  {
+    id: "rookie-mistake-sticker",
+    name: "Rookie Mistake",
+    image: "/images/portfolio/mspaint/butcher.bmp",
+    galleryImages: ["/images/portfolio/mspaint/butcher.bmp"],
+    comingSoon: true,
+    detailPage: true,
+    imageStyle: {
+      objectFit: "contain",
+      backgroundColor: "#fff",
+      padding: "6%",
+    },
+  },
+  {
+    id: "business-casual-sticker",
+    name: "Business Casual",
+    image: "/images/portfolio/mspaint/IMG_2024.PNG",
+    galleryImages: ["/images/portfolio/mspaint/IMG_2024.PNG"],
+    comingSoon: true,
+    detailPage: true,
+    imageStyle: { objectFit: "contain", backgroundColor: "#fff" },
+  },
+  {
+    id: "asl-sticker",
+    name: "A/S/L",
+    image: "/images/portfolio/mspaint/IMG_0071.jpeg",
+    galleryImages: ["/images/portfolio/mspaint/IMG_0071.jpeg"],
+    comingSoon: true,
+    detailPage: true,
+    imageStyle: { objectFit: "contain", backgroundColor: "#fff" },
   },
   {
     id: "help-the-helper-sticker",
@@ -246,11 +278,12 @@ const stickerProducts = [
     detailPage: true,
   },
   {
-    id: "party-mode-sticker",
-    name: "Party Mode",
-    image: "/images/portfolio/mspaint/IMG_2821.JPG",
-    galleryImages: ["/images/portfolio/mspaint/IMG_2821.JPG"],
-    comingSoon: true,
+    id: "lurker-sticker",
+    name: "Lurker",
+    image: "/images/Store/stickers/sticker_link.png",
+    galleryImages: ["/images/Store/stickers/sticker_link.png"],
+    soldOut: true,
+    showSoldOutBanner: true,
     detailPage: true,
   },
 ];
@@ -367,6 +400,7 @@ function ProductGrid({
                   src={assetUrl(product.image)}
                   alt={product.name}
                   className="block w-full h-full object-cover"
+                  style={product.imageStyle || {}}
                   loading="lazy"
                 />
               </Link>
@@ -385,6 +419,7 @@ function ProductGrid({
                   src={assetUrl(product.image)}
                   alt={product.name}
                   className="block w-full h-full object-cover"
+                  style={product.imageStyle || {}}
                   loading="lazy"
                 />
               </button>
