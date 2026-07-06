@@ -231,11 +231,12 @@ const collaborationProducts = [
 const stickerProducts = [
   {
     id: "party-mode-sticker",
-    name: "Party Mode",
+    name: "Party Mode!",
     image: "/images/portfolio/mspaint/IMG_2821.JPG",
     galleryImages: ["/images/portfolio/mspaint/IMG_2821.JPG"],
-    comingSoon: true,
-    detailPage: true,
+    orderUrl:
+      "https://www.stickermule.com/mterpeza/item/20794149?origin=PUBLIC_PROFILE",
+    detailPage: false,
     imageStyle: { objectFit: "contain", backgroundColor: "#fff" },
   },
   {
@@ -243,8 +244,9 @@ const stickerProducts = [
     name: "Rookie Mistake",
     image: "/images/portfolio/mspaint/butcher.bmp",
     galleryImages: ["/images/portfolio/mspaint/butcher.bmp"],
-    comingSoon: true,
-    detailPage: true,
+    orderUrl:
+      "https://www.stickermule.com/mterpeza/item/20794087?origin=PUBLIC_PROFILE",
+    detailPage: false,
     imageStyle: {
       objectFit: "contain",
       backgroundColor: "#fff",
@@ -256,8 +258,9 @@ const stickerProducts = [
     name: "Business Casual",
     image: "/images/portfolio/mspaint/IMG_2024.PNG",
     galleryImages: ["/images/portfolio/mspaint/IMG_2024.PNG"],
-    comingSoon: true,
-    detailPage: true,
+    orderUrl:
+      "https://www.stickermule.com/mterpeza/item/20794179?origin=PUBLIC_PROFILE",
+    detailPage: false,
     imageStyle: { objectFit: "contain", backgroundColor: "#fff" },
   },
   {
@@ -265,8 +268,9 @@ const stickerProducts = [
     name: "A/S/L",
     image: "/images/portfolio/mspaint/IMG_0071.jpeg",
     galleryImages: ["/images/portfolio/mspaint/IMG_0071.jpeg"],
-    comingSoon: true,
-    detailPage: true,
+    orderUrl:
+      "https://www.stickermule.com/mterpeza/item/20794139?origin=PUBLIC_PROFILE",
+    detailPage: false,
     imageStyle: { objectFit: "contain", backgroundColor: "#fff" },
   },
   {
@@ -274,8 +278,9 @@ const stickerProducts = [
     name: "Help the Helper",
     image: "/images/portfolio/mspaint/IMG_5366.JPG",
     galleryImages: ["/images/portfolio/mspaint/IMG_5366.JPG"],
-    comingSoon: true,
-    detailPage: true,
+    orderUrl:
+      "https://www.stickermule.com/mterpeza/item/20794168?origin=PUBLIC_PROFILE",
+    detailPage: false,
   },
   {
     id: "lurker-sticker",
@@ -284,7 +289,7 @@ const stickerProducts = [
     galleryImages: ["/images/Store/stickers/sticker_link.png"],
     soldOut: true,
     showSoldOutBanner: true,
-    detailPage: true,
+    detailPage: false,
   },
 ];
 
@@ -404,6 +409,22 @@ function ProductGrid({
                   loading="lazy"
                 />
               </Link>
+            ) : product.orderUrl ? (
+              <a
+                href={product.orderUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full h-full"
+                aria-label={`Order ${product.name} on Sticker Mule`}
+              >
+                <img
+                  src={assetUrl(product.image)}
+                  alt={product.name}
+                  className="block w-full h-full object-cover"
+                  style={product.imageStyle || {}}
+                  loading="lazy"
+                />
+              </a>
             ) : (
               <button
                 type="button"
@@ -440,7 +461,10 @@ function ProductGrid({
             {product.orderUrl ? (
               <>
                 <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-2 font-semibold">
-                  Vinyl · outdoor quality
+                  3&quot; × 3&quot; · Durable &amp; weatherproof
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  Printed &amp; fulfilled by Sticker Mule
                 </p>
                 <a
                   href={product.orderUrl}
