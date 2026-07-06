@@ -504,7 +504,7 @@ function ProductGrid({
   );
 }
 
-export default function Shop() {
+export default function Shop({ onBreadcrumbChange }) {
   const location = useLocation();
   const galleryOverlayRef = useRef(null);
   const touchStartXRef = useRef(null);
@@ -519,6 +519,96 @@ export default function Shop() {
   const [gridGroups, setGridGroups] = useState([]);
   const [gridGroupIndex, setGridGroupIndex] = useState(-1);
   const [highlightedId, setHighlightedId] = useState(null);
+  const [headerInView, setHeaderInView] = useState(true);
+  const [activeSection, setActiveSection] = useState(null);
+
+  // Show breadcrumb as soon as the user starts scrolling
+  useEffect(() => {
+    const onScroll = () => setHeaderInView(window.scrollY < 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Continuously track which section is currently in view
+  useEffect(() => {
+    const sectionIds = [
+      "stickers-section",
+      "personal-section",
+      "collaborations-section",
+    ];
+    const intersecting = new Set();
+
+    const update = () => {
+      const active =
+        sectionIds.filter((id) => intersecting.has(id)).pop() ?? null;
+      // Only update when something is active — never clear mid-scroll
+      if (active) setActiveSection(active);
+    };
+
+    // Stickers + Collaborations: activate when section is 70% up the screen
+    const obsDefault = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            intersecting.add(entry.target.id);
+          } else {
+            intersecting.delete(entry.target.id);
+          }
+        });
+        update();
+      },
+      { threshold: 0, rootMargin: "-70% 0px 0px 0px" },
+    );
+
+    // Personal Artwork: activate when it reaches near the top of the screen
+    const obsPersonal = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            intersecting.add(entry.target.id);
+          } else {
+            intersecting.delete(entry.target.id);
+          }
+        });
+        update();
+      },
+      { threshold: 0, rootMargin: "-10% 0px -85% 0px" },
+    );
+
+    ["stickers-section", "collaborations-section"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) obsDefault.observe(el);
+    });
+
+    const personalEl = document.getElementById("personal-section");
+    if (personalEl) obsPersonal.observe(personalEl);
+
+    return () => {
+      obsDefault.disconnect();
+      obsPersonal.disconnect();
+    };
+  }, []);
+
+  // Publish breadcrumb to Navbar
+  useEffect(() => {
+    if (!onBreadcrumbChange) return;
+    if (headerInView) {
+      onBreadcrumbChange(null);
+      return;
+    }
+    const sectionMap = {
+      "stickers-section": "Store / Stickers",
+      "personal-section": "Store / Personal Artwork",
+      "collaborations-section": "Store / Collaborations and Other Work",
+    };
+    onBreadcrumbChange(activeSection ? sectionMap[activeSection] : null);
+  }, [activeSection, onBreadcrumbChange, headerInView]);
+
+  useEffect(() => {
+    return () => {
+      if (onBreadcrumbChange) onBreadcrumbChange(null);
+    };
+  }, [onBreadcrumbChange]);
 
   // Scroll to and highlight a product card when arriving via a hash link
   useEffect(() => {
@@ -737,144 +827,231 @@ export default function Shop() {
     });
   }, [isGalleryOpen, activeImageIndex]);
 
+  const sectionLabelMap = {
+    "stickers-section": "Stickers",
+    "personal-section": "Personal Artwork",
+    "collaborations-section": "Collaborations",
+  };
+  const showMobileBreadcrumb = !headerInView;
+  const mobileSectionLabel = activeSection
+    ? sectionLabelMap[activeSection]
+    : null;
+
   return (
-    <main
-      className={`fade-in ${
-        isGalleryOpen
-          ? "w-screen h-screen overflow-hidden p-0 m-0"
-          : "container mx-auto p-6"
-      }`}
-    >
-      <header
-        id="store-header"
-        data-animate="true"
-        className="mb-6"
+    <>
+      {/* Mobile-only sticky breadcrumb — mirrors Portfolio pattern */}
+      <div
+        aria-hidden={!showMobileBreadcrumb}
+        className="md:hidden sticky top-[62px] z-40 w-full h-[44px] flex items-end justify-center pb-2.5 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm"
         style={{
-          opacity: visibleElements["store-header"] ? 1 : 0.3,
-          transform: visibleElements["store-header"]
+          opacity: showMobileBreadcrumb ? 1 : 0,
+          transform: showMobileBreadcrumb
             ? "translateY(0)"
-            : "translateY(20px)",
-          transition:
-            "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
+            : "translateY(-6px)",
+          pointerEvents: showMobileBreadcrumb ? "auto" : "none",
+          transition: "opacity 200ms ease, transform 200ms ease",
         }}
       >
-        <p className="text-xs uppercase tracking-[0.18em] text-[#6cebe4] font-semibold mb-2">
-          Store
-        </p>
-        <h1 className="text-3xl font-bold mb-2">My Online Store</h1>
-        <p className="text-gray-600 dark:text-gray-300">
-          Welcome! Please contact Mike if you're interested in purchasing any
-          artwork or have any questions.
-        </p>
-      </header>
-
-      <section
-        id="personal-section"
-        data-animate="true"
-        className="mb-10"
-        style={{
-          opacity: visibleElements["personal-section"] ? 1 : 0.3,
-          transform: visibleElements["personal-section"]
-            ? "translateY(0)"
-            : "translateY(20px)",
-          transition:
-            "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
-        }}
-      >
-        <h2 className="text-2xl font-semibold mb-4">Personal Artwork</h2>
-        <ProductGrid
-          products={personalProducts}
-          onOpenGallery={openGallery}
-          visibleElements={visibleElements}
-          highlightedId={highlightedId}
-        />
-      </section>
-
-      <section
-        id="collaborations-section"
-        data-animate="true"
-        style={{
-          opacity: visibleElements["collaborations-section"] ? 1 : 0.3,
-          transform: visibleElements["collaborations-section"]
-            ? "translateY(0)"
-            : "translateY(20px)",
-          transition:
-            "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
-        }}
-      >
-        <div className="relative mb-3 h-px w-full overflow-hidden rounded-full bg-[rgba(255,64,0,0.2)] dark:bg-[rgba(108,235,228,0.3)]">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#ff4000] to-transparent dark:via-[#6cebe4] animate-[pulse_1.8s_ease-in-out_infinite] shadow-[0_0_8px_rgba(255,64,0,0.7)] dark:shadow-[0_0_10px_rgba(108,235,228,0.9)]" />
+        <div className="container mx-auto px-4 flex items-center justify-center">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-[#ff4000] dark:text-[#6cebe4] font-semibold truncate text-center leading-none">
+            Store
+            {mobileSectionLabel ? (
+              <>
+                <span className="mx-1.5 opacity-40">/</span>
+                {mobileSectionLabel}
+              </>
+            ) : null}
+          </p>
         </div>
-        <h2 className="text-2xl font-semibold mb-4">
-          Collaborations and Other Work
-        </h2>
-        <ProductGrid
-          products={collaborationProducts}
-          onOpenGallery={openGallery}
-          onOpenGrid={openCooperGrid}
-          visibleElements={visibleElements}
-        />
-      </section>
+      </div>
 
-      <section
-        id="stickers-section"
-        data-animate="true"
-        className="mt-10"
-        style={{
-          opacity: visibleElements["stickers-section"] ? 1 : 0.3,
-          transform: visibleElements["stickers-section"]
-            ? "translateY(0)"
-            : "translateY(20px)",
-          transition:
-            "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
-        }}
+      <main
+        className={`fade-in ${
+          isGalleryOpen
+            ? "w-screen h-screen overflow-hidden p-0 m-0"
+            : "container mx-auto p-6"
+        }`}
       >
-        <div className="relative mb-3 h-px w-full overflow-hidden rounded-full bg-[rgba(255,64,0,0.2)] dark:bg-[rgba(108,235,228,0.3)]">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#ff4000] to-transparent dark:via-[#6cebe4] animate-[pulse_1.8s_ease-in-out_infinite] shadow-[0_0_8px_rgba(255,64,0,0.7)] dark:shadow-[0_0_10px_rgba(108,235,228,0.9)]" />
-        </div>
-        <h2 className="text-2xl font-semibold mb-2">Stickers</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-          Coming soon — print-to-order stickers in the works.
-        </p>
-        <ProductGrid
-          products={stickerProducts}
-          onOpenGallery={openGallery}
-          visibleElements={visibleElements}
+        <header
+          id="store-header"
+          data-animate="true"
+          className="mb-6"
+          style={{
+            opacity: visibleElements["store-header"] ? 1 : 0.3,
+            transform: visibleElements["store-header"]
+              ? "translateY(0)"
+              : "translateY(20px)",
+            transition:
+              "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
+          }}
+        >
+          <p className="sr-only">Store</p>
+          <h1 className="text-3xl font-bold mb-2">Online Store</h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Welcome! Please contact Mike if you're interested in purchasing any
+            artwork or have any questions.
+          </p>
+        </header>
+
+        <section
+          id="stickers-section"
+          data-animate="true"
+          className="mb-10"
+          style={{
+            opacity: visibleElements["stickers-section"] ? 1 : 0.3,
+            transform: visibleElements["stickers-section"]
+              ? "translateY(0)"
+              : "translateY(20px)",
+            transition:
+              "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
+          }}
+        >
+          <div className="relative mb-3 h-px w-full overflow-hidden rounded-full bg-[rgba(255,64,0,0.2)] dark:bg-[rgba(108,235,228,0.3)]">
+            <div
+              className="absolute inset-y-0 w-1/2"
+              style={{
+                animation: "shimmer-slide 3s linear infinite",
+                background:
+                  "linear-gradient(to right, transparent, #ff4000, transparent)",
+                boxShadow: "0 0 8px rgba(255,64,0,0.7)",
+              }}
+            />
+            <div
+              className="absolute inset-y-0 w-1/2 hidden dark:block"
+              style={{
+                animation: "shimmer-slide 3s linear infinite",
+                background:
+                  "linear-gradient(to right, transparent, #6cebe4, transparent)",
+                boxShadow: "0 0 10px rgba(108,235,228,0.9)",
+              }}
+            />
+          </div>
+          <h2 className="text-2xl font-semibold mb-4">Stickers</h2>
+          <ProductGrid
+            products={stickerProducts}
+            onOpenGallery={openGallery}
+            visibleElements={visibleElements}
+          />
+        </section>
+
+        <section
+          id="personal-section"
+          data-animate="true"
+          className="mb-10"
+          style={{
+            opacity: visibleElements["personal-section"] ? 1 : 0.3,
+            transform: visibleElements["personal-section"]
+              ? "translateY(0)"
+              : "translateY(20px)",
+            transition:
+              "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
+          }}
+        >
+          <div className="relative mb-3 h-px w-full overflow-hidden rounded-full bg-[rgba(255,64,0,0.2)] dark:bg-[rgba(108,235,228,0.3)]">
+            <div
+              className="absolute inset-y-0 w-1/2"
+              style={{
+                animation: "shimmer-slide 3s linear infinite",
+                background:
+                  "linear-gradient(to right, transparent, #ff4000, transparent)",
+                boxShadow: "0 0 8px rgba(255,64,0,0.7)",
+              }}
+            />
+            <div
+              className="absolute inset-y-0 w-1/2 hidden dark:block"
+              style={{
+                animation: "shimmer-slide 3s linear infinite",
+                background:
+                  "linear-gradient(to right, transparent, #6cebe4, transparent)",
+                boxShadow: "0 0 10px rgba(108,235,228,0.9)",
+              }}
+            />
+          </div>
+          <h2 className="text-2xl font-semibold mb-4">Personal Artwork</h2>
+          <ProductGrid
+            products={personalProducts}
+            onOpenGallery={openGallery}
+            visibleElements={visibleElements}
+            highlightedId={highlightedId}
+          />
+        </section>
+
+        <section
+          id="collaborations-section"
+          data-animate="true"
+          style={{
+            opacity: visibleElements["collaborations-section"] ? 1 : 0.3,
+            transform: visibleElements["collaborations-section"]
+              ? "translateY(0)"
+              : "translateY(20px)",
+            transition:
+              "transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 600ms ease",
+          }}
+        >
+          <div className="relative mb-3 h-px w-full overflow-hidden rounded-full bg-[rgba(255,64,0,0.2)] dark:bg-[rgba(108,235,228,0.3)]">
+            <div
+              className="absolute inset-y-0 w-1/2"
+              style={{
+                animation: "shimmer-slide 3s linear infinite",
+                background:
+                  "linear-gradient(to right, transparent, #ff4000, transparent)",
+                boxShadow: "0 0 8px rgba(255,64,0,0.7)",
+              }}
+            />
+            <div
+              className="absolute inset-y-0 w-1/2 hidden dark:block"
+              style={{
+                animation: "shimmer-slide 3s linear infinite",
+                background:
+                  "linear-gradient(to right, transparent, #6cebe4, transparent)",
+                boxShadow: "0 0 10px rgba(108,235,228,0.9)",
+              }}
+            />
+          </div>
+          <h2 className="text-2xl font-semibold mb-4">
+            Collaborations and Other Work
+          </h2>
+          <ProductGrid
+            products={collaborationProducts}
+            onOpenGallery={openGallery}
+            onOpenGrid={openCooperGrid}
+            visibleElements={visibleElements}
+          />
+        </section>
+
+        <CooperDiersGridModal
+          key={cooperGridKey}
+          product={cooperGridProduct}
+          onClose={closeCooperGrid}
+          onOpenGroup={openGroupFromGrid}
         />
-      </section>
 
-      <CooperDiersGridModal
-        key={cooperGridKey}
-        product={cooperGridProduct}
-        onClose={closeCooperGrid}
-        onOpenGroup={openGroupFromGrid}
-      />
-
-      <GalleryLightbox
-        isOpen={isGalleryOpen}
-        images={activeImages}
-        activeIndex={activeImageIndex}
-        title={activeProduct?.name || "Store item"}
-        viewerAriaLabel={
-          activeProduct
-            ? `${activeProduct.name} image gallery`
-            : "Store image gallery"
-        }
-        onClose={closeGallery}
-        onPrev={prevImage}
-        onNext={nextImage}
-        onSelectIndex={setActiveImageIndex}
-        allowNav={gridGroups.length > 0}
-        getImageAlt={(index) =>
-          `${activeProduct?.name || "Store item"} preview ${index + 1}`
-        }
-        fullScreen
-        alwaysShowThumbRail
-        largeThumbs
-        overlayRef={galleryOverlayRef}
-        onContentTouchStart={handleLightboxTouchStart}
-        onContentTouchEnd={handleLightboxTouchEnd}
-      />
-    </main>
+        <GalleryLightbox
+          isOpen={isGalleryOpen}
+          images={activeImages}
+          activeIndex={activeImageIndex}
+          title={activeProduct?.name || "Store item"}
+          viewerAriaLabel={
+            activeProduct
+              ? `${activeProduct.name} image gallery`
+              : "Store image gallery"
+          }
+          onClose={closeGallery}
+          onPrev={prevImage}
+          onNext={nextImage}
+          onSelectIndex={setActiveImageIndex}
+          allowNav={gridGroups.length > 0}
+          getImageAlt={(index) =>
+            `${activeProduct?.name || "Store item"} preview ${index + 1}`
+          }
+          fullScreen
+          alwaysShowThumbRail
+          largeThumbs
+          overlayRef={galleryOverlayRef}
+          onContentTouchStart={handleLightboxTouchStart}
+          onContentTouchEnd={handleLightboxTouchEnd}
+        />
+      </main>
+    </>
   );
 }

@@ -254,8 +254,24 @@ function App() {
                 element={<Portfolio onBreadcrumbChange={setNavBreadcrumb} />}
               />
               <Route path="/about" element={<About theme={theme} />} />
-              <Route path="/store" element={<Shop addToCart={addToCart} />} />
-              <Route path="/shop" element={<Shop addToCart={addToCart} />} />
+              <Route
+                path="/store"
+                element={
+                  <Shop
+                    addToCart={addToCart}
+                    onBreadcrumbChange={setNavBreadcrumb}
+                  />
+                }
+              />
+              <Route
+                path="/shop"
+                element={
+                  <Shop
+                    addToCart={addToCart}
+                    onBreadcrumbChange={setNavBreadcrumb}
+                  />
+                }
+              />
               <Route path="/shop/:productId" element={<ProductPage />} />
               <Route path="/hello-stickers" element={<HelloStickers />} />
               <Route
