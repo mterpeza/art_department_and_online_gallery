@@ -36,10 +36,9 @@ export default function LeaveYourMark() {
   const getRecentCheckInLimit = () => {
     if (typeof window === "undefined") return 4;
     const width = window.innerWidth || 0;
-    if (width >= 1280) return 6;
-    if (width >= 768) return 4;
-    if (width >= 480) return 4;
-    return 3;
+    if (width >= 1024) return 9;
+    if (width >= 640) return 6;
+    return 4;
   };
   const [recentCheckInLimit, setRecentCheckInLimit] = useState(
     getRecentCheckInLimit,
@@ -1333,11 +1332,11 @@ export default function LeaveYourMark() {
               </p>
             )}
             {stickers.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-2 overflow-visible lg:overflow-y-auto pr-1 flex-none lg:flex-1 content-start max-h-none lg:max-h-[85vh]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-visible flex-none content-start">
                 {recentStickers.map((sticker, idx) => (
                   <div
                     key={sticker.createdAt || idx}
-                    className="overflow-hidden flex flex-col gap-0 cursor-pointer group"
+                    className="relative cursor-pointer group"
                     onClick={() => setLightboxIndex(idx)}
                     role="button"
                     tabIndex={0}
@@ -1346,11 +1345,20 @@ export default function LeaveYourMark() {
                     }
                     aria-label="Preview sticker"
                   >
-                    <div className="flex justify-end h-1.5 sm:h-2 pr-0.5 mb-0">
+                    {/* Image + dot — both relative to the card-sized container */}
+                    <div className="relative w-full aspect-[4/3]">
+                      <div className="absolute inset-0 rounded-sm overflow-hidden">
+                        <img
+                          src={sticker.imageData}
+                          alt={`Saved sticker ${sticker.createdAt || idx}`}
+                          className="w-full h-full object-contain bg-transparent p-1"
+                        />
+                      </div>
+                      {/* Status dot — right edge flush with card right edge */}
                       <span
-                        className={`h-2.5 w-2.5 rounded-full ${
+                        className={`absolute top-0 right-0 z-10 h-2 w-2 rounded-full ${
                           isRecentlyPosted(sticker.createdAt)
-                            ? "bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.95)] animate-pulse"
+                            ? "bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.95)] animate-pulse"
                             : "bg-gray-300 dark:bg-gray-600"
                         }`}
                         title={
@@ -1365,14 +1373,8 @@ export default function LeaveYourMark() {
                         }
                       />
                     </div>
-                    <div className="w-full aspect-square rounded-sm overflow-hidden">
-                      <img
-                        src={sticker.imageData}
-                        alt={`Saved sticker ${sticker.createdAt || idx}`}
-                        className="w-full h-full object-contain bg-transparent p-0"
-                      />
-                    </div>
-                    <p className="mt-0 text-[10px] text-center text-gray-400 dark:text-gray-500 leading-none">
+                    {/* Date — below the card */}
+                    <p className="mt-0 text-[9px] text-center text-gray-400 dark:text-gray-500 leading-none">
                       {formatSavedAt(sticker.createdAt)}
                     </p>
                   </div>
