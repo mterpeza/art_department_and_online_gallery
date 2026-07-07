@@ -80,35 +80,74 @@
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Michael Terpeza",
-        "alternateName": "Mike Terpeza",
-        "url": "https://mikesartdept.com",
-        "image": "https://artdept-portfolio-test.s3.amazonaws.com/images/hero/helloStickerTemplate.png",
-        "sameAs": [],
-        "jobTitle": "Artist",
-        "description": "Michael Terpeza is a Midwest artist based in Wisconsin specializing in paintings, illustrations, calligraphy, hand lettering, photography, and digital art. Based near Chicago and Minneapolis. Original artwork available for sale.",
-        "knowsAbout": [
-          "painting",
-          "illustration",
-          "calligraphy",
-          "hand lettering",
-          "graffiti art",
-          "photography",
-          "digital art",
-          "printmaking"
-        ],
-        "offers": {
-          "@type": "Offer",
-          "description": "Original paintings and artwork for sale. Custom commissions available.",
-          "seller": {
+      [
+        {
+          "@context": "https://schema.org",
+          "@type": ["Person", "VisualArtist"],
+          "name": "Michael Terpeza",
+          "alternateName": ["Mike Terpeza", "Mike Terpeza Art"],
+          "url": "https://www.miketerpeza.com",
+          "image": "https://artdept-portfolio-test.s3.amazonaws.com/images/hero/helloStickerTemplate.png",
+          "sameAs": ["https://www.miketerpeza.com"],
+          "jobTitle": "Visual Artist",
+          "description": "Mike Terpeza (Michael Terpeza) is a visual artist based in Wisconsin. Original paintings, illustrations, calligraphy, hand lettering, photography, and digital art. Original artwork for sale and available for commission. Serving the Chicago and Minneapolis areas.",
+          "address": {
+            "@type": "PostalAddress",
+            "addressRegion": "WI",
+            "addressCountry": "US"
+          },
+          "knowsAbout": [
+            "painting",
+            "illustration",
+            "calligraphy",
+            "hand lettering",
+            "graffiti art",
+            "photography",
+            "digital art",
+            "printmaking",
+            "visual art",
+            "original artwork"
+          ],
+          "hasOfferCatalog": {
+            "@type": "OfferCatalog",
+            "name": "Mike Terpeza Original Artwork",
+            "itemListElement": [
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Product",
+                  "name": "Original Paintings by Mike Terpeza",
+                  "description": "Original paintings available for purchase"
+                }
+              },
+              {
+                "@type": "Offer",
+                "itemOffered": {
+                  "@type": "Product",
+                  "name": "Art Stickers by Mike Terpeza",
+                  "description": "Vinyl stickers featuring original artwork by Mike Terpeza"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Mike Terpeza Artwork",
+          "url": "https://www.miketerpeza.com",
+          "description": "Official portfolio and online store of Mike Terpeza — Midwest visual artist based in Wisconsin.",
+          "author": {
             "@type": "Person",
             "name": "Michael Terpeza"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://www.miketerpeza.com/portfolio",
+            "query-input": "required name=search_term_string"
           }
         }
-      }
+      ]
     </script>
 
     <!-- Google Analytics 4 -->
@@ -150,6 +189,7 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+    <link rel="canonical" href="https://www.miketerpeza.com" />
     <title>Mike Terpeza Artwork</title>
   </head>
   <body>
