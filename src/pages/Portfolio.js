@@ -2421,13 +2421,8 @@ export default function Portfolio({ onBreadcrumbChange }) {
         </div>
       </div>
 
-      <main className="fade-in container mx-auto p-6">
+      <main className="fade-in container mx-auto px-6 pt-4 pb-6 md:p-6">
         <header className="mb-3 md:mb-6" ref={portfolioHeaderRef}>
-          <p className="text-xs uppercase tracking-[0.18em] text-[#ff4000] dark:text-[#6cebe4] font-semibold mb-2">
-            Portfolio
-            {activeTopSectionId ? ` / ${activeTopSectionLabel}` : ""}
-            {activeSubSectionLabel ? ` / ${activeSubSectionLabel}` : ""}
-          </p>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Portfolio</h1>
         </header>
         <section

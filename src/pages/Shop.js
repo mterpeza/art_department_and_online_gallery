@@ -869,7 +869,7 @@ export default function Shop({ onBreadcrumbChange }) {
         className={`fade-in ${
           isGalleryOpen
             ? "w-screen h-screen overflow-hidden p-0 m-0"
-            : "container mx-auto p-6"
+            : "container mx-auto px-6 pt-4 pb-6 md:p-6"
         }`}
       >
         <header
