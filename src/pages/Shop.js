@@ -875,7 +875,7 @@ export default function Shop({ onBreadcrumbChange }) {
         <header
           id="store-header"
           data-animate="true"
-          className="mb-6"
+          className="mb-3 md:mb-6"
           style={{
             opacity: visibleElements["store-header"] ? 1 : 0.3,
             transform: visibleElements["store-header"]
@@ -886,7 +886,7 @@ export default function Shop({ onBreadcrumbChange }) {
           }}
         >
           <p className="sr-only">Store</p>
-          <h1 className="text-3xl font-bold mb-2">Online Store</h1>
+          <h1 className="text-3xl font-bold mb-2">Online store</h1>
           <p className="text-gray-600 dark:text-gray-300">
             Welcome! Please contact Mike if you're interested in purchasing any
             artwork or have any questions.

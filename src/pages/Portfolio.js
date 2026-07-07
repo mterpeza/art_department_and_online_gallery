@@ -1763,11 +1763,15 @@ export default function Portfolio({ onBreadcrumbChange }) {
       onBreadcrumbChange(null);
       return;
     }
-    let text = `Portfolio / ${activeTopSectionLabel}`;
-    if (activeSubSectionLabel) text += ` / ${activeSubSectionLabel}`;
+    let text = "Portfolio";
+    if (activeTopSectionId) {
+      text += ` / ${activeTopSectionLabel}`;
+      if (activeSubSectionLabel) text += ` / ${activeSubSectionLabel}`;
+    }
     onBreadcrumbChange(text);
   }, [
     showStickyBreadcrumb,
+    activeTopSectionId,
     activeTopSectionLabel,
     activeSubSectionLabel,
     onBreadcrumbChange,
@@ -2418,9 +2422,10 @@ export default function Portfolio({ onBreadcrumbChange }) {
       </div>
 
       <main className="fade-in container mx-auto p-6">
-        <header className="mb-6" ref={portfolioHeaderRef}>
+        <header className="mb-3 md:mb-6" ref={portfolioHeaderRef}>
           <p className="text-xs uppercase tracking-[0.18em] text-[#ff4000] dark:text-[#6cebe4] font-semibold mb-2">
-            Portfolio / {activeTopSectionLabel}
+            Portfolio
+            {activeTopSectionId ? ` / ${activeTopSectionLabel}` : ""}
             {activeSubSectionLabel ? ` / ${activeSubSectionLabel}` : ""}
           </p>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Portfolio</h1>
