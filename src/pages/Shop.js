@@ -461,6 +461,9 @@ function ProductGrid({
             {product.orderUrl ? (
               <>
                 <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-2 font-semibold">
+                  $6
+                </p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-0.5 font-semibold">
                   3&quot; × 3&quot; · Durable &amp; weatherproof
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">

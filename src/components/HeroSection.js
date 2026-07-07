@@ -40,16 +40,12 @@ export default function HeroSection({ theme }) {
         className="absolute inset-0 z-10 cursor-pointer"
       />
       <div className="absolute inset-x-0 bottom-0 md:inset-x-4 md:bottom-3 md:right-10 md:left-auto md:ml-auto z-20 w-full md:max-w-xl rounded-none md:rounded-xl border-0 md:border border-white/30 bg-black/35 md:bg-black/45 backdrop-blur-md px-3 py-2 md:p-6 text-white text-right shadow-none md:shadow-xl">
-        <p className="text-sm md:text-base tracking-[0.16em] md:tracking-[0.18em] text-[#6cebe4] font-semibold mb-1 md:mb-2">
-          Artwork for sale
-        </p>
-        <h2 className="text-lg md:text-3xl font-bold leading-tight mb-1 md:mb-2">
+        <h2 className="text-lg md:text-3xl font-bold leading-tight mb-1 md:mb-2 text-[#6cebe4]">
           Now in the store
         </h2>
         <p className="text-xs md:text-base text-white/90 leading-snug md:leading-relaxed mb-2 md:mb-4">
-          Paintings, drawings, and mixed media are available now, but there are
-          still a couple things under construction. Please contact me for
-          pricing and to purchase.
+          Stickers, paintings, drawings and mixed media. Please contact me for
+          pricing and to purchase paintings, drawings and mixed media.
         </p>
         <div className="flex flex-wrap gap-1.5 md:gap-2 justify-end">
           <a
