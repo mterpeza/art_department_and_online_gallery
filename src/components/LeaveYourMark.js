@@ -36,8 +36,8 @@ export default function LeaveYourMark() {
   const getRecentCheckInLimit = () => {
     if (typeof window === "undefined") return 4;
     const width = window.innerWidth || 0;
-    if (width >= 1024) return 9;
-    if (width >= 640) return 6;
+    if (width >= 1350) return 9;
+    if (width >= 1024) return 6;
     return 4;
   };
   const [recentCheckInLimit, setRecentCheckInLimit] = useState(
@@ -1332,7 +1332,7 @@ export default function LeaveYourMark() {
               </p>
             )}
             {stickers.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-visible flex-none content-start">
+              <div className="grid grid-cols-1 sm:grid-cols-2 min-[1350px]:grid-cols-3 gap-3 overflow-visible flex-none content-start">
                 {recentStickers.map((sticker, idx) => (
                   <div
                     key={sticker.createdAt || idx}
