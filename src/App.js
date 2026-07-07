@@ -194,28 +194,8 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!gaMeasurementId) return undefined;
-
-    window.dataLayer = window.dataLayer || [];
-    window.gtag =
-      window.gtag ||
-      function gtag() {
-        window.dataLayer.push(arguments);
-      };
-
-    window.gtag("js", new Date());
-    window.gtag("config", gaMeasurementId);
-
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`;
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
+  // GA is loaded via index.html — no dynamic script needed here.
+  // The route-change useEffect in RouteTracker handles page_view events.
 
   const toggleTheme = () =>
     setTheme((t) => {
