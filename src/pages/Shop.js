@@ -842,14 +842,16 @@ export default function Shop({ onBreadcrumbChange }) {
       {/* Mobile-only sticky breadcrumb — mirrors Portfolio pattern */}
       <div
         aria-hidden={!showMobileBreadcrumb}
-        className="md:hidden sticky top-[62px] z-40 w-full h-[44px] flex items-end justify-center pb-2.5 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm"
+        className="md:hidden sticky top-[62px] z-40 w-full flex items-end justify-center pb-2.5 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm overflow-hidden"
         style={{
+          height: showMobileBreadcrumb ? "44px" : "0px",
           opacity: showMobileBreadcrumb ? 1 : 0,
           transform: showMobileBreadcrumb
             ? "translateY(0)"
             : "translateY(-6px)",
           pointerEvents: showMobileBreadcrumb ? "auto" : "none",
-          transition: "opacity 200ms ease, transform 200ms ease",
+          transition:
+            "height 200ms ease, opacity 200ms ease, transform 200ms ease",
         }}
       >
         <div className="container mx-auto px-4 flex items-center justify-center">
@@ -875,7 +877,7 @@ export default function Shop({ onBreadcrumbChange }) {
         <header
           id="store-header"
           data-animate="true"
-          className="mb-2 md:mb-6"
+          className="mb-6 md:mb-6"
           style={{
             opacity: visibleElements["store-header"] ? 1 : 0.3,
             transform: visibleElements["store-header"]

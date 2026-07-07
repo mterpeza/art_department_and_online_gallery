@@ -2392,14 +2392,16 @@ export default function Portfolio({ onBreadcrumbChange }) {
       {/* top-[60px] clears the single-row mobile navbar */}
       <div
         aria-hidden={!showStickyBreadcrumb}
-        className="md:hidden sticky top-[62px] z-40 w-full h-[44px] flex items-end justify-center pb-2.5 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm"
+        className="md:hidden sticky top-[62px] z-40 w-full flex items-end justify-center pb-2.5 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm overflow-hidden"
         style={{
+          height: showStickyBreadcrumb ? "44px" : "0px",
           opacity: showStickyBreadcrumb ? 1 : 0,
           transform: showStickyBreadcrumb
             ? "translateY(0)"
             : "translateY(-6px)",
           pointerEvents: showStickyBreadcrumb ? "auto" : "none",
-          transition: "opacity 200ms ease, transform 200ms ease",
+          transition:
+            "height 200ms ease, opacity 200ms ease, transform 200ms ease",
         }}
       >
         <div className="container mx-auto px-4 flex items-center justify-center">
@@ -2422,7 +2424,7 @@ export default function Portfolio({ onBreadcrumbChange }) {
       </div>
 
       <main className="fade-in container mx-auto px-6 pt-1 pb-6 md:p-6">
-        <header className="mb-2 md:mb-6" ref={portfolioHeaderRef}>
+        <header className="mb-6 md:mb-6" ref={portfolioHeaderRef}>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Portfolio</h1>
         </header>
         <section
