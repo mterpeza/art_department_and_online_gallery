@@ -869,13 +869,13 @@ export default function Shop({ onBreadcrumbChange }) {
         className={`fade-in ${
           isGalleryOpen
             ? "w-screen h-screen overflow-hidden p-0 m-0"
-            : "container mx-auto px-6 pt-4 pb-6 md:p-6"
+            : "container mx-auto px-6 pt-1 pb-6 md:p-6"
         }`}
       >
         <header
           id="store-header"
           data-animate="true"
-          className="mb-3 md:mb-6"
+          className="mb-2 md:mb-6"
           style={{
             opacity: visibleElements["store-header"] ? 1 : 0.3,
             transform: visibleElements["store-header"]
