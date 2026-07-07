@@ -1294,6 +1294,7 @@ export default function LeaveYourMark() {
                   Clear
                 </button>
               </div>
+              {/* allowPrint checkbox — hidden until print flow is ready
               <label className="inline-flex items-start gap-2 cursor-pointer mt-0.5">
                 <input
                   type="checkbox"
@@ -1305,6 +1306,7 @@ export default function LeaveYourMark() {
                   Allow others to order a weatherproof print of this sticker
                 </span>
               </label>
+              */}
               {submittedImageData && (
                 <button
                   type="button"
